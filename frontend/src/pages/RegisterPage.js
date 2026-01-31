@@ -36,10 +36,10 @@ export const RegisterPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-slate-50" data-testid="register-page">
-      <Card className="w-full max-w-md shadow-sm">
+      <Card className="w-full max-w-md shadow-sm bg-white">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-          <CardDescription>Register for a new account</CardDescription>
+          <CardTitle className="text-2xl font-bold text-slate-900">Create Account</CardTitle>
+          <CardDescription className="text-slate-600">Register for a new account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4" data-testid="register-form">
