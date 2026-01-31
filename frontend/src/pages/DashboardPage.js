@@ -127,41 +127,41 @@ export const DashboardPage = () => {
             <CardContent>
               <div className="space-y-2">
                 {user?.organization === 'Magnova' && (
-                  <a
-                    href="/purchase-orders"
+                  <Link
+                    to="/purchase-orders"
                     data-testid="quick-action-po"
                     className="block p-3 hover:bg-slate-50 rounded-md border border-slate-200 transition-colors duration-200"
                   >
                     <p className="font-medium text-slate-900">Create Purchase Order</p>
                     <p className="text-sm text-slate-600">Start a new procurement request</p>
-                  </a>
+                  </Link>
                 )}
                 {user?.organization === 'Nova' && (
-                  <a
-                    href="/procurement"
+                  <Link
+                    to="/procurement"
                     data-testid="quick-action-procurement"
                     className="block p-3 hover:bg-slate-50 rounded-md border border-slate-200 transition-colors duration-200"
                   >
                     <p className="font-medium text-slate-900">Add Procurement</p>
                     <p className="text-sm text-slate-600">Record new device procurement</p>
-                  </a>
+                  </Link>
                 )}
-                <a
-                  href="/inventory"
+                <Link
+                  to="/inventory"
                   data-testid="quick-action-inventory"
                   className="block p-3 hover:bg-slate-50 rounded-md border border-slate-200 transition-colors duration-200"
                 >
                   <p className="font-medium text-slate-900">View Inventory</p>
                   <p className="text-sm text-slate-600">Check current stock levels</p>
-                </a>
-                <a
-                  href="/reports"
+                </Link>
+                <Link
+                  to="/reports"
                   data-testid="quick-action-reports"
                   className="block p-3 hover:bg-slate-50 rounded-md border border-slate-200 transition-colors duration-200"
                 >
                   <p className="font-medium text-slate-900">Generate Reports</p>
                   <p className="text-sm text-slate-600">Export data and analytics</p>
-                </a>
+                </Link>
               </div>
             </CardContent>
           </Card>
