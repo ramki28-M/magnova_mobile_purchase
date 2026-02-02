@@ -13,6 +13,8 @@ import { useAuth } from '../context/AuthContext';
 export const InvoicesPage = () => {
   const [invoices, setInvoices] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'Admin';
   const [formData, setFormData] = useState({
     invoice_type: '',
     po_number: '',
@@ -63,6 +65,17 @@ export const InvoicesPage = () => {
       fetchInvoices();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create invoice');
+    }
+  };
+
+  const handleDelete = async (invoiceId) => {
+    if (!window.confirm('Are you sure you want to delete this invoice?')) return;
+    try {
+      await api.delete(`/invoices/${invoiceId}`);
+      toast.success('Invoice deleted successfully');
+      fetchInvoices();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete invoice');
     }
   };
 
@@ -194,12 +207,13 @@ export const InvoicesPage = () => {
                   <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">GST</th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Total</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
+                  {isAdmin && <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>}
                 </tr>
               </thead>
               <tbody>
                 {invoices.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
+                    <td colSpan={isAdmin ? 9 : 8} className="px-4 py-8 text-center text-slate-500">
                       <FileText className="w-12 h-12 mx-auto mb-2 text-slate-300" />
                       No invoices found
                     </td>
@@ -215,6 +229,19 @@ export const InvoicesPage = () => {
                       <td className="px-4 py-3 text-sm text-right text-slate-600">₹{invoice.gst_amount.toFixed(2)}</td>
                       <td className="px-4 py-3 text-sm text-right font-medium text-slate-900">₹{invoice.total_amount.toFixed(2)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{new Date(invoice.invoice_date).toLocaleDateString()}</td>
+                      {isAdmin && (
+                        <td className="px-4 py-3 text-sm">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(invoice.invoice_id)}
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50 h-8 w-8 p-0"
+                            data-testid="delete-invoice-button"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}
