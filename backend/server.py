@@ -137,25 +137,44 @@ class Payment(BaseModel):
     model_config = ConfigDict(extra="ignore")
     payment_id: str
     po_number: str
+    payment_type: str  # 'internal' or 'external'
     procurement_id: Optional[str] = None
-    payee_type: str
+    payee_type: Optional[str] = None  # 'vendor' or 'cc' for external
     payee_name: str
+    payee_account: Optional[str] = None
+    payee_bank: Optional[str] = None
+    account_number: Optional[str] = None
+    ifsc_code: Optional[str] = None
+    location: Optional[str] = None
     payment_mode: str
     amount: float
-    transaction_ref: str
+    transaction_ref: Optional[str] = None
+    utr_number: Optional[str] = None
     payment_date: datetime
     status: str
     created_by: str
     created_at: datetime
 
-class PaymentCreate(BaseModel):
+class InternalPaymentCreate(BaseModel):
     po_number: str
-    procurement_id: Optional[str] = None
-    payee_type: str
-    payee_name: str
+    payee_name: str  # Nova
+    payee_account: str
+    payee_bank: str
     payment_mode: str
     amount: float
-    transaction_ref: str
+    transaction_ref: Optional[str] = None
+    payment_date: datetime
+
+class ExternalPaymentCreate(BaseModel):
+    po_number: str
+    payee_type: str  # 'vendor' or 'cc'
+    payee_name: str
+    account_number: str
+    ifsc_code: str
+    location: str
+    payment_mode: str
+    amount: float
+    utr_number: str
     payment_date: datetime
 
 class IMEIInventory(BaseModel):
