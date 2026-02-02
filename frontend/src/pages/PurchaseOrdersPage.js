@@ -260,6 +260,9 @@ export const PurchaseOrdersPage = () => {
                             {po.approval_status === 'Pending' && (user?.role === 'Approver' || user?.role === 'Admin') && (
                               <Button size="sm" variant="outline" onClick={() => setApprovalDialog({ open: true, po })} className="h-7 text-xs" data-testid="approve-po-button">Review</Button>
                             )}
+                            {isAdmin && (
+                              <Button size="sm" variant="ghost" onClick={() => handleDelete(po.po_number)} className="text-red-600 hover:text-red-800 hover:bg-red-50 h-7 w-7 p-0" data-testid="delete-po-button"><Trash2 className="w-4 h-4" /></Button>
+                            )}
                           </>
                         )}
                       </td>
