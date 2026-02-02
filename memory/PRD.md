@@ -142,11 +142,22 @@ All pages are now linked via PO Number:
 | `/api/purchase-orders` | GET, POST | List/Create POs |
 | `/api/purchase-orders/{po_number}` | GET | Get single PO with items |
 | `/api/purchase-orders/{po_number}/approve` | POST | Approve/Reject PO |
+| `/api/purchase-orders/{po_number}` | DELETE | Delete PO (Admin only) |
 | `/api/procurement` | GET, POST | Procurement records |
+| `/api/procurement/{procurement_id}` | DELETE | Delete procurement (Admin only) |
+| `/api/payments` | GET | List all payments |
+| `/api/payments/internal` | POST | Create internal payment |
+| `/api/payments/external` | POST | Create external payment |
+| `/api/payments/summary/{po_number}` | GET | Payment summary for PO |
+| `/api/payments/{payment_id}` | DELETE | Delete payment (Admin only) |
 | `/api/inventory` | GET | IMEI inventory list |
 | `/api/inventory/scan` | POST | Scan IMEI with new actions |
+| `/api/inventory/{imei}` | DELETE | Delete inventory item (Admin only) |
 | `/api/logistics/shipments` | GET, POST | Shipments list/create |
 | `/api/logistics/shipments/{id}/status` | PATCH | Update shipment status |
+| `/api/logistics/shipments/{id}` | DELETE | Delete shipment (Admin only) |
+| `/api/invoices/{invoice_id}` | DELETE | Delete invoice (Admin only) |
+| `/api/sales-orders/{so_number}` | DELETE | Delete sales order (Admin only) |
 
 ---
 
