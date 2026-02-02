@@ -65,7 +65,7 @@
 **Heading**: Getting Started
 
 **Large, Centered Text:**
-System URL: https://magnova-erp.preview.emergentagent.com
+System URL: https://magnova-nova.preview.emergentagent.com
 
 **Three-Step Process:**
 1. Register with your work email

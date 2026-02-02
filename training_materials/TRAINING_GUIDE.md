@@ -91,7 +91,7 @@ Logistics → Invoicing → Sales Orders (Export)
 
 ### Accessing the System
 
-**URL**: https://magnova-erp.preview.emergentagent.com
+**URL**: https://magnova-nova.preview.emergentagent.com
 
 ### Registration Process
 
