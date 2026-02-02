@@ -26,6 +26,7 @@ export const ProcurementPage = () => {
     brand: '',
     storage: '',
     colour: '',
+    quantity: '',
     purchase_price: '',
   });
 
@@ -46,8 +47,8 @@ export const ProcurementPage = () => {
   const fetchPOs = async () => {
     try {
       const response = await api.get('/purchase-orders');
-      const approved = response.data.filter((po) => po.approval_status === 'Approved');
-      setPOs(approved);
+      // Show ALL POs - not just approved ones
+      setPOs(response.data);
     } catch (error) {
       console.error('Error fetching POs:', error);
     }
@@ -61,15 +62,19 @@ export const ProcurementPage = () => {
     
     if (po && po.items && po.items.length > 0) {
       setPOItems(po.items);
-      // Auto-select first item
-      handleItemSelect('0', po.items);
+      // Auto-select first item if only one
+      if (po.items.length === 1) {
+        handleItemSelect('0', po.items);
+      } else {
+        setSelectedItemIndex('');
+      }
     } else {
       setPOItems([]);
       setSelectedItemIndex('');
     }
   };
 
-  // Auto-populate when line item is selected
+  // Auto-populate when line item is selected - INCLUDING quantity and price
   const handleItemSelect = (index, items = poItems) => {
     setSelectedItemIndex(index);
     const item = items[parseInt(index)];
@@ -82,6 +87,7 @@ export const ProcurementPage = () => {
         brand: item.brand || '',
         storage: item.storage || '',
         colour: item.colour || '',
+        quantity: item.qty ? item.qty.toString() : '',
         purchase_price: item.rate ? item.rate.toString() : '',
       }));
     }
@@ -97,6 +103,7 @@ export const ProcurementPage = () => {
         imei: formData.imei,
         serial_number: formData.serial_number,
         device_model: `${formData.brand} ${formData.device_model}`,
+        quantity: parseInt(formData.quantity) || 1,
         purchase_price: parseFloat(formData.purchase_price),
       });
       toast.success('Procurement record created successfully');
@@ -119,6 +126,7 @@ export const ProcurementPage = () => {
       brand: '',
       storage: '',
       colour: '',
+      quantity: '',
       purchase_price: '',
     });
     setSelectedPO(null);
@@ -148,39 +156,45 @@ export const ProcurementPage = () => {
               </DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4" data-testid="procurement-form">
                 {/* PO Selection */}
-                <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                  <div>
-                    <Label className="text-slate-700 font-medium">PO Number *</Label>
-                    <Select value={formData.po_number} onValueChange={handlePOSelect} required>
-                      <SelectTrigger data-testid="po-select" className="bg-white">
-                        <SelectValue placeholder="Select PO" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {pos.map((po) => (
-                          <SelectItem key={po.po_number} value={po.po_number}>
-                            {po.po_number} - {po.purchase_office}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {poItems.length > 0 && (
+                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-slate-700 font-medium">Select Line Item *</Label>
-                      <Select value={selectedItemIndex} onValueChange={handleItemSelect} required>
-                        <SelectTrigger className="bg-white">
-                          <SelectValue placeholder="Select item" />
+                      <Label className="text-slate-700 font-medium">PO Number *</Label>
+                      <Select value={formData.po_number} onValueChange={handlePOSelect} required>
+                        <SelectTrigger data-testid="po-select" className="bg-white">
+                          <SelectValue placeholder="Select PO" />
                         </SelectTrigger>
-                        <SelectContent className="bg-white">
-                          {poItems.map((item, index) => (
-                            <SelectItem key={index} value={index.toString()}>
-                              {item.brand} {item.model} - {item.vendor}
-                            </SelectItem>
-                          ))}
+                        <SelectContent className="bg-white max-h-60">
+                          {pos.length === 0 ? (
+                            <SelectItem value="none" disabled>No POs available</SelectItem>
+                          ) : (
+                            pos.map((po) => (
+                              <SelectItem key={po.po_number} value={po.po_number}>
+                                {po.po_number} - {po.purchase_office} ({po.approval_status})
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
-                  )}
+                    {poItems.length > 1 && (
+                      <div>
+                        <Label className="text-slate-700 font-medium">Select Line Item *</Label>
+                        <Select value={selectedItemIndex} onValueChange={handleItemSelect} required>
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Select item" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white max-h-60">
+                            {poItems.map((item, index) => (
+                              <SelectItem key={index} value={index.toString()}>
+                                {item.vendor} - {item.brand} {item.model} (Qty: {item.qty})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Auto-populated Fields */}
@@ -191,8 +205,9 @@ export const ProcurementPage = () => {
                       value={formData.vendor_name}
                       onChange={(e) => setFormData({ ...formData, vendor_name: e.target.value })}
                       required
-                      className="bg-white text-slate-900"
+                      className="bg-slate-100 text-slate-900"
                       data-testid="vendor-input"
+                      readOnly
                     />
                   </div>
                   <div>
@@ -201,8 +216,9 @@ export const ProcurementPage = () => {
                       value={formData.store_location}
                       onChange={(e) => setFormData({ ...formData, store_location: e.target.value })}
                       required
-                      className="bg-white text-slate-900"
+                      className="bg-slate-100 text-slate-900"
                       data-testid="location-input"
+                      readOnly
                     />
                   </div>
                   <div>
@@ -211,7 +227,8 @@ export const ProcurementPage = () => {
                       value={formData.brand}
                       onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                       required
-                      className="bg-white text-slate-900"
+                      className="bg-slate-100 text-slate-900"
+                      readOnly
                     />
                   </div>
                   <div>
@@ -220,8 +237,9 @@ export const ProcurementPage = () => {
                       value={formData.device_model}
                       onChange={(e) => setFormData({ ...formData, device_model: e.target.value })}
                       required
-                      className="bg-white text-slate-900"
+                      className="bg-slate-100 text-slate-900"
                       data-testid="model-input"
+                      readOnly
                     />
                   </div>
                   <div>
@@ -229,7 +247,8 @@ export const ProcurementPage = () => {
                     <Input
                       value={formData.storage}
                       onChange={(e) => setFormData({ ...formData, storage: e.target.value })}
-                      className="bg-white text-slate-900"
+                      className="bg-slate-100 text-slate-900"
+                      readOnly
                     />
                   </div>
                   <div>
@@ -237,7 +256,32 @@ export const ProcurementPage = () => {
                     <Input
                       value={formData.colour}
                       onChange={(e) => setFormData({ ...formData, colour: e.target.value })}
-                      className="bg-white text-slate-900"
+                      className="bg-slate-100 text-slate-900"
+                      readOnly
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-slate-700">Quantity (Auto-populated)</Label>
+                    <Input
+                      type="number"
+                      value={formData.quantity}
+                      onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                      required
+                      className="bg-slate-100 text-slate-900 font-bold"
+                      readOnly
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-slate-700">Purchase Price (Auto-populated)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.purchase_price}
+                      onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
+                      required
+                      data-testid="price-input"
+                      className="bg-slate-100 text-slate-900 font-bold"
+                      readOnly
                     />
                   </div>
                   <div>
@@ -258,18 +302,7 @@ export const ProcurementPage = () => {
                       onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
                       data-testid="serial-input"
                       className="font-mono bg-white text-slate-900"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-slate-700">Purchase Price *</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.purchase_price}
-                      onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
-                      required
-                      data-testid="price-input"
-                      className="bg-white text-slate-900"
+                      placeholder="Optional"
                     />
                   </div>
                 </div>
@@ -291,6 +324,7 @@ export const ProcurementPage = () => {
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Device Model</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Vendor</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Location</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Qty</th>
                   <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Price</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
                 </tr>
@@ -298,7 +332,7 @@ export const ProcurementPage = () => {
               <tbody>
                 {records.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
+                    <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
                       No procurement records found
                     </td>
                   </tr>
@@ -310,7 +344,8 @@ export const ProcurementPage = () => {
                       <td className="px-4 py-3 text-sm text-slate-900">{record.device_model}</td>
                       <td className="px-4 py-3 text-sm text-slate-900">{record.vendor_name}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{record.store_location}</td>
-                      <td className="px-4 py-3 text-sm text-right text-slate-900 font-medium">₹{record.purchase_price.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-900">{record.quantity || 1}</td>
+                      <td className="px-4 py-3 text-sm text-right text-slate-900 font-medium">₹{record.purchase_price?.toFixed(2) || '0.00'}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{new Date(record.procurement_date).toLocaleDateString()}</td>
                     </tr>
                   ))
