@@ -686,13 +686,14 @@ async def create_shipment(shipment_data: ShipmentCreate, current_user: User = De
         "pickup_quantity": shipment_data.pickup_quantity or len(shipment_data.imei_list),
         "brand": shipment_data.brand,
         "model": shipment_data.model,
+        "vendor": shipment_data.vendor,
         "created_by": current_user.user_id,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.logistics_shipments.insert_one(shipment_doc)
-    await create_audit_log("CREATE", "Shipment", shipment_doc["shipment_id"], current_user, {"pickup_quantity": shipment_doc["pickup_quantity"]})
+    await create_audit_log("CREATE", "Shipment", shipment_doc["shipment_id"], current_user, {"pickup_quantity": shipment_doc["pickup_quantity"], "vendor": shipment_data.vendor})
     
     return LogisticsShipment(**{k: v for k, v in shipment_doc.items() if k != "_id"})
 
