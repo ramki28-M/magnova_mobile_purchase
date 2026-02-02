@@ -769,8 +769,29 @@ async def lookup_imei(imei: str, current_user: User = Depends(get_current_user))
 @api_router.post("/inventory/scan")
 async def scan_imei(scan_data: IMEIScan, current_user: User = Depends(get_current_user)):
     imei_record = await db.imei_inventory.find_one({"imei": scan_data.imei})
+    
+    # If IMEI not in inventory, check procurement and create entry
     if not imei_record:
-        raise HTTPException(status_code=404, detail="IMEI not found")
+        procurement_record = await db.procurement.find_one({"imei": scan_data.imei})
+        if not procurement_record:
+            raise HTTPException(status_code=404, detail="IMEI not found in procurement records. Please add this IMEI through procurement first.")
+        
+        # Create new inventory entry from procurement data
+        new_inventory = {
+            "imei": scan_data.imei,
+            "device_model": procurement_record.get("device_model", "Unknown"),
+            "status": "Procured",
+            "vendor": procurement_record.get("vendor_name") or scan_data.vendor,
+            "organization": scan_data.organization or "Nova",
+            "current_location": scan_data.location or procurement_record.get("store_location"),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "po_number": procurement_record.get("po_number"),
+            "procurement_id": procurement_record.get("procurement_id"),
+            "purchase_price": procurement_record.get("purchase_price"),
+        }
+        await db.imei_inventory.insert_one(new_inventory)
+        imei_record = new_inventory
     
     update_data = {
         "updated_at": datetime.now(timezone.utc).isoformat(),
