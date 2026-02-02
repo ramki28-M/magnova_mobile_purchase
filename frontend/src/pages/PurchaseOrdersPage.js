@@ -154,9 +154,18 @@ export const PurchaseOrdersPage = () => {
                       <table className="w-full text-sm">
                         <thead className="bg-slate-50">
                           <tr>
-                            {['SL No', 'Vendor', 'Location', 'Brand', 'Model', 'Storage', 'Colour', 'IMEI', 'Qty', 'Rate', 'PO Value', 'Action'].map(h => (
-                              <th key={h} className="px-2 py-3 text-left text-xs font-medium text-slate-700">{h}</th>
-                            ))}
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">SL No</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Vendor</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Location</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Brand</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Model</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Storage</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Colour</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">IMEI</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Qty</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Rate</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">PO Value</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Action</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -191,9 +200,14 @@ export const PurchaseOrdersPage = () => {
             <table className="w-full" data-testid="po-table">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  {['PO Number', 'PO Date', 'Purchase Office', 'Created By', 'Qty', 'Total Value', 'Status', 'Actions'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{h}</th>
-                  ))}
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">PO Number</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">PO Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Purchase Office</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Created By</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Qty</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Total Value</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -265,7 +279,19 @@ export const PurchaseOrdersPage = () => {
                 <div className="border border-slate-200 rounded-lg overflow-hidden">
                   <table className="w-full text-sm">
                     <thead className="bg-magnova-blue text-white">
-                      <tr>{['SL', 'Vendor', 'Location', 'Brand', 'Model', 'Storage', 'Colour', 'IMEI', 'Qty', 'Rate', 'Value'].map(h => <th key={h} className="px-3 py-2 text-left text-xs font-medium">{h}</th>)}</tr>
+                      <tr>
+                        <th className="px-3 py-2 text-left text-xs font-medium">SL</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium">Vendor</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium">Location</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium">Brand</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium">Model</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium">Storage</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium">Colour</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium">IMEI</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium">Qty</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium">Rate</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium">Value</th>
+                      </tr>
                     </thead>
                     <tbody>
                       {viewDialog.po.items.map((item, i) => (
