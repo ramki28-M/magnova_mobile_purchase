@@ -297,10 +297,10 @@ export const ReportsPage = () => {
                   <th colSpan="15" className="bg-green-600 text-white px-2 py-2 text-left text-sm font-bold border-r border-green-500">
                     PROCUREMENT (Nova to Magnova PO)
                   </th>
-                  <th colSpan="6" className="bg-amber-500 text-white px-2 py-2 text-left text-sm font-bold border-r border-amber-400">
+                  <th colSpan="6" className="bg-orange-500 text-white px-2 py-2 text-left text-sm font-bold border-r border-orange-400">
                     FINANCE (Magnova to Nova)
                   </th>
-                  <th colSpan="4" className="bg-orange-500 text-white px-2 py-2 text-left text-sm font-bold border-r border-orange-400">
+                  <th colSpan="4" className="bg-orange-600 text-white px-2 py-2 text-left text-sm font-bold border-r border-orange-500">
                     LOGISTICS
                   </th>
                   <th colSpan="4" className="bg-pink-500 text-white px-2 py-2 text-left text-sm font-bold">
@@ -378,7 +378,7 @@ export const ReportsPage = () => {
                       <td className="px-2 py-2 text-slate-700">{row.ifsc_code}</td>
                       <td className="px-2 py-2 text-slate-700">{formatDate(row.payment_date)}</td>
                       <td className="px-2 py-2 font-mono text-slate-700">{row.utr_no}</td>
-                      <td className="px-2 py-2 font-medium text-amber-700 border-r border-slate-200">{formatCurrency(row.payment_amount)}</td>
+                      <td className="px-2 py-2 font-medium text-orange-600 border-r border-slate-200">{formatCurrency(row.payment_amount)}</td>
                       {/* LOGISTICS */}
                       <td className="px-2 py-2 text-slate-700">{row.courier_name}</td>
                       <td className="px-2 py-2 text-slate-700">{formatDate(row.dispatch_date)}</td>
@@ -438,7 +438,7 @@ export const ReportsPage = () => {
               </div>
               <div>
                 <span className="text-slate-500">Total Payments:</span>
-                <span className="ml-2 font-bold text-amber-700">
+                <span className="ml-2 font-bold text-orange-600">
                   {formatCurrency(filteredReport.reduce((sum, r) => sum + (r.payment_amount || 0), 0))}
                 </span>
               </div>
