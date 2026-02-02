@@ -90,42 +90,46 @@ export const PurchaseOrdersPage = () => {
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Purchase Orders</h1>
             <p className="text-slate-600 mt-1">Manage procurement requests</p>
           </div>
-          {user?.organization === 'Magnova' && user?.role === 'Purchase' && (
+          {user?.organization === 'Magnova' && (user?.role === 'Purchase' || user?.role === 'Admin') && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button data-testid="create-po-button">
+                <Button data-testid="create-po-button" className="bg-magnova-blue hover:bg-magnova-dark-blue">
                   <Plus className="w-4 h-4 mr-2" />
-                  Create PO
+                  Create Purchase Order
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="bg-white">
                 <DialogHeader>
-                  <DialogTitle>Create Purchase Order</DialogTitle>
-                  <DialogDescription>Enter purchase order details</DialogDescription>
+                  <DialogTitle className="text-magnova-orange">Create Purchase Order</DialogTitle>
+                  <DialogDescription className="text-slate-600">Enter purchase order details</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleCreate} className="space-y-4" data-testid="create-po-form">
                   <div>
-                    <Label htmlFor="quantity">Total Quantity</Label>
+                    <Label htmlFor="quantity" className="text-slate-900">Total Quantity</Label>
                     <Input
                       id="quantity"
                       type="number"
                       value={formData.total_quantity}
                       onChange={(e) => setFormData({ ...formData, total_quantity: e.target.value })}
                       required
+                      placeholder="Enter quantity (e.g., 50)"
+                      className="bg-white text-slate-900 border-slate-300"
                       data-testid="po-quantity-input"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="notes">Notes</Label>
+                    <Label htmlFor="notes" className="text-slate-900">Notes (Optional)</Label>
                     <Textarea
                       id="notes"
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                       rows={3}
+                      placeholder="Add any special instructions or requirements..."
+                      className="bg-white text-slate-900 border-slate-300"
                       data-testid="po-notes-input"
                     />
                   </div>
-                  <Button type="submit" className="w-full" data-testid="po-submit-button">
+                  <Button type="submit" className="w-full bg-magnova-blue hover:bg-magnova-dark-blue" data-testid="po-submit-button">
                     Create Purchase Order
                   </Button>
                 </form>
