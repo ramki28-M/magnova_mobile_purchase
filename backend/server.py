@@ -586,17 +586,29 @@ async def scan_imei(scan_data: IMEIScan, current_user: User = Depends(get_curren
     if not imei_record:
         raise HTTPException(status_code=404, detail="IMEI not found")
     
-    update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    update_data = {
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "current_location": scan_data.location,
+        "organization": scan_data.organization
+    }
+    
+    # Add customer_organization if provided
+    if scan_data.customer_organization:
+        update_data["customer_organization"] = scan_data.customer_organization
     
     if scan_data.action == "inward_nova":
         update_data["status"] = "Inward Nova"
         update_data["inward_nova_date"] = datetime.now(timezone.utc).isoformat()
-        update_data["current_location"] = scan_data.location
     elif scan_data.action == "inward_magnova":
         update_data["status"] = "Inward Magnova"
         update_data["inward_magnova_date"] = datetime.now(timezone.utc).isoformat()
-        update_data["current_location"] = scan_data.location
         update_data["organization"] = "Magnova"
+    elif scan_data.action == "outward_nova":
+        update_data["status"] = "Outward Nova"
+        update_data["outward_nova_date"] = datetime.now(timezone.utc).isoformat()
+    elif scan_data.action == "outward_magnova":
+        update_data["status"] = "Outward Magnova"
+        update_data["outward_magnova_date"] = datetime.now(timezone.utc).isoformat()
     elif scan_data.action == "dispatch":
         update_data["status"] = "Dispatched"
         update_data["dispatched_date"] = datetime.now(timezone.utc).isoformat()
@@ -604,7 +616,7 @@ async def scan_imei(scan_data: IMEIScan, current_user: User = Depends(get_curren
         update_data["status"] = "Available"
     
     await db.imei_inventory.update_one({"imei": scan_data.imei}, {"$set": update_data})
-    await create_audit_log("SCAN", "IMEI", scan_data.imei, current_user, {"action": scan_data.action})
+    await create_audit_log("SCAN", "IMEI", scan_data.imei, current_user, {"action": scan_data.action, "location": scan_data.location})
     
     return {"message": "IMEI scanned successfully", "status": update_data.get("status", imei_record["status"])}
 
