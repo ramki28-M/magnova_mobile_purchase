@@ -66,16 +66,32 @@ export const PurchaseOrdersPage = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      // Calculate total quantity from line items
-      const totalQty = lineItems.reduce((sum, item) => sum + parseInt(item.qty || 0), 0);
+      // Build items array with calculated PO values
+      const items = lineItems.map((item, index) => ({
+        sl_no: index + 1,
+        vendor: item.vendor,
+        location: item.location,
+        brand: item.brand,
+        model: item.model,
+        storage: item.storage || null,
+        colour: item.colour || null,
+        imei: item.imei || null,
+        qty: parseInt(item.qty) || 1,
+        rate: parseFloat(item.rate) || 0,
+        po_value: (parseInt(item.qty) || 1) * (parseFloat(item.rate) || 0)
+      }));
       
       await api.post('/purchase-orders', {
-        total_quantity: totalQty,
-        notes: JSON.stringify(lineItems), // Store line items in notes for now
+        po_date: new Date(poDate).toISOString(),
+        purchase_office: purchaseOffice,
+        items: items,
+        notes: null
       });
       toast.success('Purchase order created successfully');
       setDialogOpen(false);
-      setFormData({ total_quantity: '', notes: '' });
+      // Reset form
+      setPoDate(new Date().toISOString().split('T')[0]);
+      setPurchaseOffice('Magnova Head Office');
       setLineItems([{
         vendor: '',
         location: '',
