@@ -164,37 +164,167 @@ export const PurchaseOrdersPage = () => {
                   Create Purchase Order
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-white">
+              <DialogContent className="bg-white max-w-6xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="text-magnova-orange">Create Purchase Order</DialogTitle>
-                  <DialogDescription className="text-slate-600">Enter purchase order details</DialogDescription>
+                  <DialogDescription className="text-slate-600">Add line items with complete device details</DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleCreate} className="space-y-4" data-testid="create-po-form">
-                  <div>
-                    <Label htmlFor="quantity" className="text-slate-900">Total Quantity</Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      value={formData.total_quantity}
-                      onChange={(e) => setFormData({ ...formData, total_quantity: e.target.value })}
-                      required
-                      placeholder="Enter quantity (e.g., 50)"
-                      className="bg-white text-slate-900 border-slate-300"
-                      data-testid="po-quantity-input"
-                    />
+                <form onSubmit={handleCreate} className="space-y-6" data-testid="create-po-form">
+                  
+                  {/* Line Items Table */}
+                  <div className="border border-slate-200 rounded-lg overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-slate-50">
+                          <tr>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">SL No</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Vendor</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Location</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Brand</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Model</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Storage</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Colour</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">IMEI</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Qty</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Rate</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">PO Value</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {lineItems.map((item, index) => (
+                            <tr key={index} className="border-t border-slate-100">
+                              <td className="px-2 py-2 text-slate-900">{index + 1}</td>
+                              <td className="px-2 py-2">
+                                <Input
+                                  value={item.vendor}
+                                  onChange={(e) => updateLineItem(index, 'vendor', e.target.value)}
+                                  placeholder="Vendor name"
+                                  className="h-8 text-xs bg-white text-slate-900"
+                                  required
+                                />
+                              </td>
+                              <td className="px-2 py-2">
+                                <Input
+                                  value={item.location}
+                                  onChange={(e) => updateLineItem(index, 'location', e.target.value)}
+                                  placeholder="Location"
+                                  className="h-8 text-xs bg-white text-slate-900"
+                                  required
+                                />
+                              </td>
+                              <td className="px-2 py-2">
+                                <Input
+                                  value={item.brand}
+                                  onChange={(e) => updateLineItem(index, 'brand', e.target.value)}
+                                  placeholder="Brand"
+                                  className="h-8 text-xs bg-white text-slate-900"
+                                  required
+                                />
+                              </td>
+                              <td className="px-2 py-2">
+                                <Input
+                                  value={item.model}
+                                  onChange={(e) => updateLineItem(index, 'model', e.target.value)}
+                                  placeholder="Model"
+                                  className="h-8 text-xs bg-white text-slate-900"
+                                  required
+                                />
+                              </td>
+                              <td className="px-2 py-2">
+                                <Input
+                                  value={item.storage}
+                                  onChange={(e) => updateLineItem(index, 'storage', e.target.value)}
+                                  placeholder="Storage"
+                                  className="h-8 text-xs bg-white text-slate-900"
+                                />
+                              </td>
+                              <td className="px-2 py-2">
+                                <Input
+                                  value={item.colour}
+                                  onChange={(e) => updateLineItem(index, 'colour', e.target.value)}
+                                  placeholder="Colour"
+                                  className="h-8 text-xs bg-white text-slate-900"
+                                />
+                              </td>
+                              <td className="px-2 py-2">
+                                <Input
+                                  value={item.imei}
+                                  onChange={(e) => updateLineItem(index, 'imei', e.target.value)}
+                                  placeholder="IMEI"
+                                  className="h-8 text-xs bg-white text-slate-900 font-mono"
+                                />
+                              </td>
+                              <td className="px-2 py-2">
+                                <Input
+                                  type="number"
+                                  value={item.qty}
+                                  onChange={(e) => updateLineItem(index, 'qty', e.target.value)}
+                                  placeholder="Qty"
+                                  className="h-8 text-xs bg-white text-slate-900 w-16"
+                                  min="1"
+                                  required
+                                />
+                              </td>
+                              <td className="px-2 py-2">
+                                <Input
+                                  type="number"
+                                  value={item.rate}
+                                  onChange={(e) => updateLineItem(index, 'rate', e.target.value)}
+                                  placeholder="Rate"
+                                  className="h-8 text-xs bg-white text-slate-900"
+                                  step="0.01"
+                                  required
+                                />
+                              </td>
+                              <td className="px-2 py-2 text-slate-900 font-medium">
+                                ₹{calculatePOValue(item.qty, item.rate)}
+                              </td>
+                              <td className="px-2 py-2">
+                                {lineItems.length > 1 && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeLineItem(index)}
+                                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <XCircle className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot className="bg-slate-50 border-t-2 border-slate-200">
+                          <tr>
+                            <td colSpan="8" className="px-2 py-3 text-right font-medium text-slate-900">Total:</td>
+                            <td className="px-2 py-3 font-bold text-slate-900">
+                              {lineItems.reduce((sum, item) => sum + parseInt(item.qty || 0), 0)}
+                            </td>
+                            <td className="px-2 py-3"></td>
+                            <td className="px-2 py-3 font-bold text-slate-900">
+                              ₹{lineItems.reduce((sum, item) => sum + parseFloat(calculatePOValue(item.qty, item.rate)), 0).toFixed(2)}
+                            </td>
+                            <td className="px-2 py-3"></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="notes" className="text-slate-900">Notes (Optional)</Label>
-                    <Textarea
-                      id="notes"
-                      value={formData.notes}
-                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                      rows={3}
-                      placeholder="Add any special instructions or requirements..."
-                      className="bg-white text-slate-900 border-slate-300"
-                      data-testid="po-notes-input"
-                    />
-                  </div>
+
+                  {/* Add Line Item Button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addLineItem}
+                    className="w-full border-magnova-orange text-magnova-orange hover:bg-orange-50"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Another Item
+                  </Button>
+
+                  {/* Submit Button */}
                   <Button type="submit" className="w-full bg-magnova-blue hover:bg-magnova-dark-blue" data-testid="po-submit-button">
                     Create Purchase Order
                   </Button>
