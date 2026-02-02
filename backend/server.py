@@ -577,19 +577,31 @@ async def get_procurement_records(po_number: Optional[str] = None, current_user:
     return [ProcurementRecord(**rec) for rec in records]
 
 # Payment Endpoints
-@api_router.post("/payments", response_model=Payment)
-async def create_payment(payment_data: PaymentCreate, current_user: User = Depends(get_current_user)):
+@api_router.post("/payments/internal", response_model=Payment)
+async def create_internal_payment(payment_data: InternalPaymentCreate, current_user: User = Depends(get_current_user)):
     from uuid import uuid4
+    
+    # Verify PO exists
+    po = await db.purchase_orders.find_one({"po_number": payment_data.po_number})
+    if not po:
+        raise HTTPException(status_code=400, detail="PO not found")
     
     payment_doc = {
         "payment_id": str(uuid4()),
         "po_number": payment_data.po_number,
-        "procurement_id": payment_data.procurement_id,
-        "payee_type": payment_data.payee_type,
+        "payment_type": "internal",
+        "procurement_id": None,
+        "payee_type": None,
         "payee_name": payment_data.payee_name,
+        "payee_account": payment_data.payee_account,
+        "payee_bank": payment_data.payee_bank,
+        "account_number": None,
+        "ifsc_code": None,
+        "location": None,
         "payment_mode": payment_data.payment_mode,
         "amount": payment_data.amount,
         "transaction_ref": payment_data.transaction_ref,
+        "utr_number": None,
         "payment_date": payment_data.payment_date.isoformat(),
         "status": "Completed",
         "created_by": current_user.user_id,
@@ -597,15 +609,94 @@ async def create_payment(payment_data: PaymentCreate, current_user: User = Depen
     }
     
     await db.payments.insert_one(payment_doc)
-    await create_audit_log("CREATE", "Payment", payment_doc["payment_id"], current_user, {"amount": payment_data.amount})
+    await create_audit_log("CREATE", "InternalPayment", payment_doc["payment_id"], current_user, {"amount": payment_data.amount})
     
     return Payment(**{k: v for k, v in payment_doc.items() if k != "_id"})
 
+@api_router.post("/payments/external", response_model=Payment)
+async def create_external_payment(payment_data: ExternalPaymentCreate, current_user: User = Depends(get_current_user)):
+    from uuid import uuid4
+    
+    # Verify PO exists
+    po = await db.purchase_orders.find_one({"po_number": payment_data.po_number})
+    if not po:
+        raise HTTPException(status_code=400, detail="PO not found")
+    
+    # Get total internal payments for this PO
+    internal_payments = await db.payments.find({"po_number": payment_data.po_number, "payment_type": "internal"}).to_list(1000)
+    total_internal = sum(p.get("amount", 0) for p in internal_payments)
+    
+    # Get total existing external payments for this PO
+    external_payments = await db.payments.find({"po_number": payment_data.po_number, "payment_type": "external"}).to_list(1000)
+    total_external = sum(p.get("amount", 0) for p in external_payments)
+    
+    # Check if new external payment would exceed internal payment
+    if total_external + payment_data.amount > total_internal:
+        remaining = total_internal - total_external
+        raise HTTPException(
+            status_code=400, 
+            detail=f"External payments cannot exceed internal payment. Internal: ₹{total_internal}, Already paid externally: ₹{total_external}, Remaining: ₹{remaining}"
+        )
+    
+    payment_doc = {
+        "payment_id": str(uuid4()),
+        "po_number": payment_data.po_number,
+        "payment_type": "external",
+        "procurement_id": None,
+        "payee_type": payment_data.payee_type,
+        "payee_name": payment_data.payee_name,
+        "payee_account": None,
+        "payee_bank": None,
+        "account_number": payment_data.account_number,
+        "ifsc_code": payment_data.ifsc_code,
+        "location": payment_data.location,
+        "payment_mode": payment_data.payment_mode,
+        "amount": payment_data.amount,
+        "transaction_ref": None,
+        "utr_number": payment_data.utr_number,
+        "payment_date": payment_data.payment_date.isoformat(),
+        "status": "Completed",
+        "created_by": current_user.user_id,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.payments.insert_one(payment_doc)
+    await create_audit_log("CREATE", "ExternalPayment", payment_doc["payment_id"], current_user, {"amount": payment_data.amount, "payee": payment_data.payee_name})
+    
+    return Payment(**{k: v for k, v in payment_doc.items() if k != "_id"})
+
+@api_router.get("/payments/summary/{po_number}")
+async def get_payment_summary(po_number: str, current_user: User = Depends(get_current_user)):
+    # Get PO total value
+    po = await db.purchase_orders.find_one({"po_number": po_number}, {"_id": 0})
+    if not po:
+        raise HTTPException(status_code=404, detail="PO not found")
+    
+    po_total = po.get("total_value", 0)
+    
+    # Get internal payments
+    internal_payments = await db.payments.find({"po_number": po_number, "payment_type": "internal"}).to_list(1000)
+    total_internal = sum(p.get("amount", 0) for p in internal_payments)
+    
+    # Get external payments
+    external_payments = await db.payments.find({"po_number": po_number, "payment_type": "external"}).to_list(1000)
+    total_external = sum(p.get("amount", 0) for p in external_payments)
+    
+    return {
+        "po_number": po_number,
+        "po_total_value": po_total,
+        "internal_paid": total_internal,
+        "external_paid": total_external,
+        "external_remaining": total_internal - total_external
+    }
+
 @api_router.get("/payments", response_model=List[Payment])
-async def get_payments(po_number: Optional[str] = None, current_user: User = Depends(get_current_user)):
+async def get_payments(po_number: Optional[str] = None, payment_type: Optional[str] = None, current_user: User = Depends(get_current_user)):
     query = {}
     if po_number:
         query["po_number"] = po_number
+    if payment_type:
+        query["payment_type"] = payment_type
     
     payments = await db.payments.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
     for payment in payments:
@@ -613,6 +704,12 @@ async def get_payments(po_number: Optional[str] = None, current_user: User = Dep
             payment['payment_date'] = datetime.fromisoformat(payment['payment_date'])
         if isinstance(payment.get('created_at'), str):
             payment['created_at'] = datetime.fromisoformat(payment['created_at'])
+        # Ensure backward compatibility
+        if 'payment_type' not in payment:
+            payment['payment_type'] = 'internal'
+        for field in ['payee_account', 'payee_bank', 'account_number', 'ifsc_code', 'location', 'utr_number', 'payee_type']:
+            if field not in payment:
+                payment[field] = None
     return [Payment(**payment) for payment in payments]
 
 # IMEI Inventory Endpoints
