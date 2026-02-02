@@ -13,6 +13,8 @@ import { useAuth } from '../context/AuthContext';
 export const SalesOrdersPage = () => {
   const [salesOrders, setSalesOrders] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'Admin';
   const [formData, setFormData] = useState({
     customer_name: '',
     customer_type: '',
@@ -56,6 +58,17 @@ export const SalesOrdersPage = () => {
       fetchSalesOrders();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create sales order');
+    }
+  };
+
+  const handleDelete = async (soNumber) => {
+    if (!window.confirm(`Are you sure you want to delete sales order ${soNumber}?`)) return;
+    try {
+      await api.delete(`/sales-orders/${soNumber}`);
+      toast.success('Sales order deleted successfully');
+      fetchSalesOrders();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete sales order');
     }
   };
 
@@ -163,12 +176,13 @@ export const SalesOrdersPage = () => {
                   <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Amount</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Created</th>
+                  {isAdmin && <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>}
                 </tr>
               </thead>
               <tbody>
                 {salesOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
+                    <td colSpan={isAdmin ? 8 : 7} className="px-4 py-8 text-center text-slate-500">
                       <ShoppingBag className="w-12 h-12 mx-auto mb-2 text-slate-300" />
                       No sales orders found
                     </td>
@@ -185,6 +199,19 @@ export const SalesOrdersPage = () => {
                         <span className={`status-badge ${getStatusColor(order.status)}`}>{order.status}</span>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">{new Date(order.created_at).toLocaleDateString()}</td>
+                      {isAdmin && (
+                        <td className="px-4 py-3 text-sm">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(order.so_number)}
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50 h-8 w-8 p-0"
+                            data-testid="delete-sales-order-button"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}
