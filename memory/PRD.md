@@ -76,20 +76,42 @@ All pages are now linked via PO Number:
 
 ---
 
+## Recently Completed (Feb 2, 2025)
+
+### ✅ Admin Delete Functionality (Complete)
+- Delete button added to every row on all data pages
+- Delete button only visible to Admin role users
+- DELETE endpoints protected with admin role check (returns 403 for non-admin)
+- Affected pages: Purchase Orders, Procurement, Inventory, Logistics, Payments, Invoices, Sales Orders
+
+### ✅ Enhanced Payment Management (Complete)
+- **Two Payment Types**: Internal (Magnova → Nova) and External (Nova → Vendor/CC)
+- **Internal Payment Fields**: PO Number, Payee Name (Nova), Payee Account, Payee Bank, Amount (auto-populated from PO), Payment Mode, Transaction Ref, Payment Date
+- **External Payment Fields**: PO Number, Payee Type (Vendor/CC), Payee Name, Account Number, IFSC Code, Location, Amount, Payment Mode, UTR Number, Payment Date
+- **Payment Balance Tracking**: External payments cannot exceed internal payment amount for same PO
+- **Payment Summary**: Shows Internal Paid, External Paid, Remaining balance when creating external payments
+- Payments page shows two separate sections with different column headers
+
+### ✅ Duplicate PO Prevention (Backend)
+- PO numbers are unique - backend prevents duplicates automatically
+
+### ✅ Color Scheme Update
+- Changed amber/yellow text colors to orange (text-orange-600, text-orange-700)
+
+---
+
 ## Pending / In Progress
 
 ### 🟠 P1 - High Priority
-1. **Enhanced Payment Management**
-   - Split payment support
-   - Multi-party payments (Magnova → Nova, Nova → Vendor, Nova → 3rd party)
-   - Payment status tracking
-
-2. **Logistics Document Uploads**
+1. **Logistics Document Uploads**
    - E-way bill attachment
    - POD (Proof of Delivery) uploads
 
-3. **Verify Other Module Functionality**
+2. **Verify Other Module Functionality**
    - Test Invoices, Sales Orders pages
+
+3. **IMEI Lifecycle Tracking Enhancement**
+   - Enhanced UI for scanning and status updates
 
 ### 🟡 P2 - Medium Priority
 4. **Configurable Approval Workflows**
