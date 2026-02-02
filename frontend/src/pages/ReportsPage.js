@@ -371,11 +371,11 @@ export const ReportsPage = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="29" className="px-4 py-8 text-center text-slate-500">Loading report data...</td>
+                    <td colSpan={isAdmin ? 30 : 29} className="px-4 py-8 text-center text-slate-500">Loading report data...</td>
                   </tr>
                 ) : filteredReport.length === 0 ? (
                   <tr>
-                    <td colSpan="29" className="px-4 py-8 text-center text-slate-500">No data found</td>
+                    <td colSpan={isAdmin ? 30 : 29} className="px-4 py-8 text-center text-slate-500">No data found</td>
                   </tr>
                 ) : (
                   filteredReport.map((row, index) => (
