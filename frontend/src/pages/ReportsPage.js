@@ -432,6 +432,19 @@ export const ReportsPage = () => {
                           {row.stock_status}
                         </span>
                       </td>
+                      {isAdmin && (
+                        <td className="px-2 py-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteRow(row)}
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50 h-6 w-6 p-0"
+                            data-testid="delete-report-row"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}
