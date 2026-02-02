@@ -117,6 +117,7 @@ class ProcurementRecord(BaseModel):
     imei: str
     serial_number: Optional[str] = None
     device_model: str
+    quantity: Optional[int] = 1
     purchase_price: float
     procurement_date: datetime
     created_by: str
@@ -129,6 +130,7 @@ class ProcurementCreate(BaseModel):
     imei: str
     serial_number: Optional[str] = None
     device_model: str
+    quantity: Optional[int] = 1
     purchase_price: float
 
 class Payment(BaseModel):
