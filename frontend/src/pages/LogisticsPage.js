@@ -17,6 +17,7 @@ export const LogisticsPage = () => {
   const [selectedShipment, setSelectedShipment] = useState(null);
   const [selectedPO, setSelectedPO] = useState(null);
   const [poItems, setPOItems] = useState([]);
+  const [selectedItemIndex, setSelectedItemIndex] = useState('');
   const [availableQty, setAvailableQty] = useState({});
   const [formData, setFormData] = useState({
     po_number: '',
@@ -29,6 +30,7 @@ export const LogisticsPage = () => {
     pickup_quantity: '',
     brand: '',
     model: '',
+    vendor: '',
     total_quantity: '',
   });
   const [newStatus, setNewStatus] = useState('');
@@ -57,49 +59,70 @@ export const LogisticsPage = () => {
     }
   };
 
-  // Calculate shipped quantity for a PO
-  const getShippedQuantity = (poNumber) => {
+  // Calculate shipped quantity for a specific PO line item (by vendor + location + model)
+  const getShippedQuantityForItem = (poNumber, vendor, location, model) => {
     return shipments
-      .filter(s => s.po_number === poNumber)
-      .reduce((sum, s) => sum + (s.pickup_quantity || s.imei_list?.length || 0), 0);
+      .filter(s => s.po_number === poNumber && s.vendor === vendor && s.from_location === location && s.model === model)
+      .reduce((sum, s) => sum + (s.pickup_quantity || 0), 0);
   };
 
   // Auto-populate when PO is selected
   const handlePOSelect = (poNumber) => {
     const po = pos.find(p => p.po_number === poNumber);
     setSelectedPO(po);
+    setSelectedItemIndex('');
     
     if (po && po.items && po.items.length > 0) {
       setPOItems(po.items);
       
-      // Get unique locations from PO items
-      const locations = [...new Set(po.items.map(item => item.location).filter(Boolean))];
-      
-      // Calculate total and available quantities
-      const totalQty = po.total_quantity || po.items.reduce((sum, item) => sum + (item.qty || 0), 0);
-      const shippedQty = getShippedQuantity(poNumber);
-      const available = totalQty - shippedQty;
-      
-      // Get first item's brand and model
-      const firstItem = po.items[0];
+      // If only one item, auto-select it
+      if (po.items.length === 1) {
+        handleItemSelect('0', po.items, poNumber);
+      } else {
+        // Multiple items - reset form and wait for item selection
+        setFormData(prev => ({
+          ...prev,
+          po_number: poNumber,
+          from_location: '',
+          brand: '',
+          model: '',
+          vendor: '',
+          total_quantity: '',
+          pickup_quantity: '',
+        }));
+        setAvailableQty({});
+      }
+    } else {
+      setPOItems([]);
+      setAvailableQty({});
+    }
+  };
+
+  // Auto-populate when line item is selected
+  const handleItemSelect = (index, items = poItems, poNumber = formData.po_number) => {
+    setSelectedItemIndex(index);
+    const item = items[parseInt(index)];
+    
+    if (item) {
+      const itemQty = item.qty || 0;
+      const shippedQty = getShippedQuantityForItem(poNumber, item.vendor, item.location, item.model);
+      const available = itemQty - shippedQty;
       
       setFormData(prev => ({
         ...prev,
         po_number: poNumber,
-        from_location: locations[0] || '',
-        brand: firstItem?.brand || '',
-        model: firstItem?.model || '',
-        total_quantity: totalQty.toString(),
+        from_location: item.location || '',
+        brand: item.brand || '',
+        model: item.model || '',
+        vendor: item.vendor || '',
+        total_quantity: itemQty.toString(),
       }));
       
       setAvailableQty({
-        total: totalQty,
+        total: itemQty,
         shipped: shippedQty,
         available: available
       });
-    } else {
-      setPOItems([]);
-      setAvailableQty({});
     }
   };
 
@@ -121,10 +144,11 @@ export const LogisticsPage = () => {
         to_location: formData.to_location,
         pickup_date: new Date(formData.pickup_date).toISOString(),
         expected_delivery: new Date(formData.expected_delivery).toISOString(),
-        imei_list: [], // Will be populated later
+        imei_list: [],
         pickup_quantity: pickupQty,
         brand: formData.brand,
         model: formData.model,
+        vendor: formData.vendor,
       });
       toast.success('Shipment created successfully');
       setDialogOpen(false);
@@ -147,10 +171,12 @@ export const LogisticsPage = () => {
       pickup_quantity: '',
       brand: '',
       model: '',
+      vendor: '',
       total_quantity: '',
     });
     setSelectedPO(null);
     setPOItems([]);
+    setSelectedItemIndex('');
     setAvailableQty({});
   };
 
@@ -240,159 +266,188 @@ export const LogisticsPage = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    {availableQty.total !== undefined && (
-                      <div className="flex items-end">
-                        <div className="p-3 bg-white rounded-lg border border-slate-200 w-full">
-                          <div className="grid grid-cols-3 gap-2 text-sm">
-                            <div>
-                              <span className="text-slate-500">Total:</span>
-                              <span className="ml-2 font-bold text-slate-900">{availableQty.total}</span>
-                            </div>
-                            <div>
-                              <span className="text-slate-500">Shipped:</span>
-                              <span className="ml-2 font-bold text-orange-600">{availableQty.shipped}</span>
-                            </div>
-                            <div>
-                              <span className="text-slate-500">Available:</span>
-                              <span className="ml-2 font-bold text-emerald-600">{availableQty.available}</span>
-                            </div>
-                          </div>
-                        </div>
+                    
+                    {/* Line Item Dropdown - Only show if PO has multiple items */}
+                    {poItems.length > 1 && (
+                      <div>
+                        <Label className="text-slate-700 font-medium">Select Line Item *</Label>
+                        <Select value={selectedItemIndex} onValueChange={(idx) => handleItemSelect(idx)} required>
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Select item from PO" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white">
+                            {poItems.map((item, index) => (
+                              <SelectItem key={index} value={index.toString()}>
+                                {item.vendor} - {item.location} - {item.brand} {item.model} (Qty: {item.qty})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     )}
                   </div>
+                  
+                  {/* Quantity Info - Show only when item is selected */}
+                  {availableQty.total !== undefined && (
+                    <div className="mt-4 p-3 bg-white rounded-lg border border-slate-200">
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <span className="text-slate-500">Total Qty:</span>
+                          <span className="ml-2 font-bold text-slate-900">{availableQty.total}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Already Shipped:</span>
+                          <span className="ml-2 font-bold text-orange-600">{availableQty.shipped}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Available:</span>
+                          <span className="ml-2 font-bold text-emerald-600">{availableQty.available}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Auto-populated Fields */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-slate-700">Brand</Label>
-                    <Input
-                      value={formData.brand}
-                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                      className="bg-slate-100 text-slate-900"
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-slate-700">Model</Label>
-                    <Input
-                      value={formData.model}
-                      onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                      className="bg-slate-100 text-slate-900"
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-slate-700">Pickup Quantity *</Label>
-                    <Input
-                      type="number"
-                      value={formData.pickup_quantity}
-                      onChange={(e) => setFormData({ ...formData, pickup_quantity: e.target.value })}
-                      required
-                      min="1"
-                      max={availableQty.available || 999}
-                      className="bg-white text-slate-900"
-                      placeholder={`Max: ${availableQty.available || 0}`}
-                    />
-                  </div>
-                </div>
+                {/* Auto-populated Fields - Only show when item is selected */}
+                {(selectedItemIndex !== '' || poItems.length === 1) && formData.brand && (
+                  <>
+                    <div className="grid grid-cols-4 gap-4">
+                      <div>
+                        <Label className="text-slate-700">Vendor</Label>
+                        <Input
+                          value={formData.vendor}
+                          className="bg-slate-100 text-slate-900"
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-slate-700">Brand</Label>
+                        <Input
+                          value={formData.brand}
+                          className="bg-slate-100 text-slate-900"
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-slate-700">Model</Label>
+                        <Input
+                          value={formData.model}
+                          className="bg-slate-100 text-slate-900"
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-slate-700">Pickup Quantity *</Label>
+                        <Input
+                          type="number"
+                          value={formData.pickup_quantity}
+                          onChange={(e) => setFormData({ ...formData, pickup_quantity: e.target.value })}
+                          required
+                          min="1"
+                          max={availableQty.available || 999}
+                          className="bg-white text-slate-900"
+                          placeholder={`Max: ${availableQty.available || 0}`}
+                        />
+                      </div>
+                    </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-slate-700">Pickup Location *</Label>
-                    <Select value={formData.from_location} onValueChange={(value) => setFormData({ ...formData, from_location: value })} required>
-                      <SelectTrigger className="bg-white">
-                        <SelectValue placeholder="Select pickup location" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {allLocations.length > 0 ? (
-                          allLocations.map((loc) => (
-                            <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                          ))
-                        ) : (
-                          <>
-                            <SelectItem value="Mumbai">Mumbai</SelectItem>
-                            <SelectItem value="Delhi">Delhi</SelectItem>
-                            <SelectItem value="Bangalore">Bangalore</SelectItem>
-                            <SelectItem value="Chennai">Chennai</SelectItem>
-                            <SelectItem value="Hyderabad">Hyderabad</SelectItem>
-                            <SelectItem value="Pune">Pune</SelectItem>
-                          </>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-slate-700">To Location *</Label>
-                    <Select value={formData.to_location} onValueChange={(value) => setFormData({ ...formData, to_location: value })} required>
-                      <SelectTrigger className="bg-white">
-                        <SelectValue placeholder="Select destination" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {allLocations.length > 0 ? (
-                          allLocations.map((loc) => (
-                            <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                          ))
-                        ) : (
-                          <>
-                            <SelectItem value="Mumbai">Mumbai</SelectItem>
-                            <SelectItem value="Delhi">Delhi</SelectItem>
-                            <SelectItem value="Bangalore">Bangalore</SelectItem>
-                            <SelectItem value="Chennai">Chennai</SelectItem>
-                            <SelectItem value="Hyderabad">Hyderabad</SelectItem>
-                            <SelectItem value="Pune">Pune</SelectItem>
-                          </>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-slate-700">Transporter Name *</Label>
-                    <Input
-                      value={formData.transporter_name}
-                      onChange={(e) => setFormData({ ...formData, transporter_name: e.target.value })}
-                      required
-                      className="bg-white text-slate-900"
-                      data-testid="transporter-input"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-slate-700">Vehicle Number *</Label>
-                    <Input
-                      value={formData.vehicle_number}
-                      onChange={(e) => setFormData({ ...formData, vehicle_number: e.target.value })}
-                      required
-                      className="bg-white text-slate-900 font-mono"
-                      data-testid="vehicle-input"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-slate-700">Pickup Date *</Label>
-                    <Input
-                      type="date"
-                      value={formData.pickup_date}
-                      onChange={(e) => setFormData({ ...formData, pickup_date: e.target.value })}
-                      required
-                      className="bg-white text-slate-900"
-                      data-testid="pickup-date-input"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-slate-700">Expected Delivery *</Label>
-                    <Input
-                      type="date"
-                      value={formData.expected_delivery}
-                      onChange={(e) => setFormData({ ...formData, expected_delivery: e.target.value })}
-                      required
-                      className="bg-white text-slate-900"
-                      data-testid="delivery-date-input"
-                    />
-                  </div>
-                </div>
-                <Button type="submit" className="w-full bg-magnova-blue hover:bg-magnova-dark-blue" data-testid="submit-shipment">
-                  Create Shipment
-                </Button>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-slate-700">Pickup Location *</Label>
+                        <Select value={formData.from_location} onValueChange={(value) => setFormData({ ...formData, from_location: value })} required>
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Select pickup location" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white">
+                            {allLocations.length > 0 ? (
+                              allLocations.map((loc) => (
+                                <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                              ))
+                            ) : (
+                              <>
+                                <SelectItem value="Mumbai">Mumbai</SelectItem>
+                                <SelectItem value="Delhi">Delhi</SelectItem>
+                                <SelectItem value="Bangalore">Bangalore</SelectItem>
+                                <SelectItem value="Chennai">Chennai</SelectItem>
+                                <SelectItem value="Hyderabad">Hyderabad</SelectItem>
+                                <SelectItem value="Vijayawada">Vijayawada</SelectItem>
+                              </>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-slate-700">To Location *</Label>
+                        <Select value={formData.to_location} onValueChange={(value) => setFormData({ ...formData, to_location: value })} required>
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Select destination" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white">
+                            {allLocations.length > 0 ? (
+                              allLocations.map((loc) => (
+                                <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                              ))
+                            ) : (
+                              <>
+                                <SelectItem value="Mumbai">Mumbai</SelectItem>
+                                <SelectItem value="Delhi">Delhi</SelectItem>
+                                <SelectItem value="Bangalore">Bangalore</SelectItem>
+                                <SelectItem value="Chennai">Chennai</SelectItem>
+                                <SelectItem value="Hyderabad">Hyderabad</SelectItem>
+                                <SelectItem value="Vijayawada">Vijayawada</SelectItem>
+                              </>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-slate-700">Transporter Name *</Label>
+                        <Input
+                          value={formData.transporter_name}
+                          onChange={(e) => setFormData({ ...formData, transporter_name: e.target.value })}
+                          required
+                          className="bg-white text-slate-900"
+                          data-testid="transporter-input"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-slate-700">Vehicle Number *</Label>
+                        <Input
+                          value={formData.vehicle_number}
+                          onChange={(e) => setFormData({ ...formData, vehicle_number: e.target.value })}
+                          required
+                          className="bg-white text-slate-900 font-mono"
+                          data-testid="vehicle-input"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-slate-700">Pickup Date *</Label>
+                        <Input
+                          type="date"
+                          value={formData.pickup_date}
+                          onChange={(e) => setFormData({ ...formData, pickup_date: e.target.value })}
+                          required
+                          className="bg-white text-slate-900"
+                          data-testid="pickup-date-input"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-slate-700">Expected Delivery *</Label>
+                        <Input
+                          type="date"
+                          value={formData.expected_delivery}
+                          onChange={(e) => setFormData({ ...formData, expected_delivery: e.target.value })}
+                          required
+                          className="bg-white text-slate-900"
+                          data-testid="delivery-date-input"
+                        />
+                      </div>
+                    </div>
+                    <Button type="submit" className="w-full bg-magnova-blue hover:bg-magnova-dark-blue" data-testid="submit-shipment">
+                      Create Shipment
+                    </Button>
+                  </>
+                )}
               </form>
             </DialogContent>
           </Dialog>
@@ -404,6 +459,7 @@ export const LogisticsPage = () => {
               <thead>
                 <tr className="bg-magnova-blue text-white">
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">PO Number</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Vendor</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Brand/Model</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Transporter</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Vehicle</th>
@@ -417,7 +473,7 @@ export const LogisticsPage = () => {
               <tbody>
                 {shipments.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-slate-500">
+                    <td colSpan={10} className="px-4 py-8 text-center text-slate-500">
                       <Package className="w-12 h-12 mx-auto mb-2 text-slate-300" />
                       No shipments found
                     </td>
@@ -426,6 +482,7 @@ export const LogisticsPage = () => {
                   shipments.map((shipment) => (
                     <tr key={shipment.shipment_id} className="table-row border-b border-slate-100 hover:bg-slate-50" data-testid="shipment-row">
                       <td className="px-4 py-3 text-sm font-mono font-medium text-magnova-blue">{shipment.po_number}</td>
+                      <td className="px-4 py-3 text-sm text-slate-900">{shipment.vendor || '-'}</td>
                       <td className="px-4 py-3 text-sm text-slate-900">{shipment.brand} {shipment.model}</td>
                       <td className="px-4 py-3 text-sm text-slate-900">{shipment.transporter_name}</td>
                       <td className="px-4 py-3 text-sm font-mono text-slate-600">{shipment.vehicle_number}</td>
@@ -459,7 +516,7 @@ export const LogisticsPage = () => {
             <DialogHeader>
               <DialogTitle className="text-magnova-orange">Update Shipment Status</DialogTitle>
               <DialogDescription className="text-slate-600">
-                PO: {selectedShipment?.po_number}
+                PO: {selectedShipment?.po_number} | {selectedShipment?.vendor}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
