@@ -13,17 +13,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 import { toast } from 'sonner';
-import { Plus, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const PurchaseOrdersPage = () => {
   const [pos, setPos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [viewDialog, setViewDialog] = useState({ open: false, po: null });
   const [approvalDialog, setApprovalDialog] = useState({ open: false, po: null });
-  const [formData, setFormData] = useState({ total_quantity: '', notes: '' });
   const [rejectionReason, setRejectionReason] = useState('');
+  
+  // Form state
+  const [poDate, setPoDate] = useState(new Date().toISOString().split('T')[0]);
+  const [purchaseOffice, setPurchaseOffice] = useState('Magnova Head Office');
   const [lineItems, setLineItems] = useState([{
     vendor: '',
     location: '',
