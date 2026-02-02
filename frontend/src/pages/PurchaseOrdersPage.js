@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import { toast } from 'sonner';
-import { Plus, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, Eye, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { POLineItemRow } from '../components/POLineItemRow';
 

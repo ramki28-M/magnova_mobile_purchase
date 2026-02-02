@@ -7,7 +7,8 @@ import { Label } from '../components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { toast } from 'sonner';
-import { Plus, ShoppingBag } from 'lucide-react';
+import { Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export const SalesOrdersPage = () => {
   const [salesOrders, setSalesOrders] = useState([]);
