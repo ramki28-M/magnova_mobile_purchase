@@ -622,8 +622,14 @@ async def create_external_payment(payment_data: ExternalPaymentCreate, current_u
     if not po:
         raise HTTPException(status_code=400, detail="PO not found")
     
-    # Get total internal payments for this PO
-    internal_payments = await db.payments.find({"po_number": payment_data.po_number, "payment_type": "internal"}).to_list(1000)
+    # Get total internal payments for this PO (include legacy payments without payment_type)
+    internal_payments = await db.payments.find({
+        "po_number": payment_data.po_number,
+        "$or": [
+            {"payment_type": "internal"},
+            {"payment_type": {"$exists": False}}  # Legacy payments
+        ]
+    }).to_list(1000)
     total_internal = sum(p.get("amount", 0) for p in internal_payments)
     
     # Get total existing external payments for this PO
