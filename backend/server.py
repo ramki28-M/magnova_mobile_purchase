@@ -674,8 +674,14 @@ async def get_payment_summary(po_number: str, current_user: User = Depends(get_c
     
     po_total = po.get("total_value", 0)
     
-    # Get internal payments
-    internal_payments = await db.payments.find({"po_number": po_number, "payment_type": "internal"}).to_list(1000)
+    # Get internal payments (include legacy payments without payment_type)
+    internal_payments = await db.payments.find({
+        "po_number": po_number,
+        "$or": [
+            {"payment_type": "internal"},
+            {"payment_type": {"$exists": False}}  # Legacy payments without payment_type
+        ]
+    }).to_list(1000)
     total_internal = sum(p.get("amount", 0) for p in internal_payments)
     
     # Get external payments
