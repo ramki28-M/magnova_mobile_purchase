@@ -261,18 +261,19 @@ export const ProcurementPage = () => {
                     />
                   </div>
                   <div>
-                    <Label className="text-slate-700">Quantity (Auto-populated)</Label>
+                    <Label className="text-slate-700">Quantity</Label>
                     <Input
                       type="number"
                       value={formData.quantity}
                       onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                       required
-                      className="bg-slate-100 text-slate-900 font-bold"
-                      readOnly
+                      className="bg-white text-slate-900"
+                      placeholder="Enter quantity"
+                      min="1"
                     />
                   </div>
                   <div>
-                    <Label className="text-slate-700">Purchase Price (Auto-populated)</Label>
+                    <Label className="text-slate-700">Purchase Price</Label>
                     <Input
                       type="number"
                       step="0.01"
@@ -280,8 +281,8 @@ export const ProcurementPage = () => {
                       onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
                       required
                       data-testid="price-input"
-                      className="bg-slate-100 text-slate-900 font-bold"
-                      readOnly
+                      className="bg-white text-slate-900"
+                      placeholder="Enter price"
                     />
                   </div>
                   <div>
