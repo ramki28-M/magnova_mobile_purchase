@@ -161,7 +161,6 @@ export const PurchaseOrdersPage = () => {
                             <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Model</th>
                             <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Storage</th>
                             <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Colour</th>
-                            <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">IMEI</th>
                             <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Qty</th>
                             <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">Rate</th>
                             <th className="px-2 py-3 text-left text-xs font-medium text-slate-700">PO Value</th>
@@ -175,7 +174,7 @@ export const PurchaseOrdersPage = () => {
                         </tbody>
                         <tfoot className="bg-slate-50 border-t-2 border-slate-200">
                           <tr>
-                            <td colSpan="8" className="px-2 py-3 text-right font-medium text-slate-900">Total:</td>
+                            <td colSpan="7" className="px-2 py-3 text-right font-medium text-slate-900">Total:</td>
                             <td className="px-2 py-3 font-bold text-slate-900">{totalQty}</td>
                             <td className="px-2 py-3"></td>
                             <td className="px-2 py-3 font-bold text-slate-900">₹{totalValue}</td>
