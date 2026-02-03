@@ -53,17 +53,18 @@ The system must provide end-to-end visibility from Purchase Order to Sales, with
 - **Status Filter**: Includes all action statuses including Outward Nova/Magnova
 - **Search**: By IMEI or device model
 
-### ✅ Logistics & Shipments Page (Complete - Updated Feb 2, 2025)
+### ✅ Logistics & Shipments Page (Complete - Updated Feb 3, 2025)
 - **Create Shipment** with PO auto-populate:
   - PO Number selection
-  - Auto-populated: Brand, Model
+  - Auto-populated: Brand, Model, Vendor
   - **Quantity Tracking**: Shows Total, Shipped, Available quantities
-  - **Pickup Location** dropdown (from PO locations)
-  - To Location dropdown
+  - **Pickup Location** - Manual text input (editable)
+  - **To Location** - Manual text input (editable)
   - Transporter Name, Vehicle Number
   - Pickup Date, Expected Delivery
+- **Procurement Notifications**: Banner shows new procurement records ready for shipment with "Create Shipment" action
 - **Status Update**: Edit button to update status (Pending, In Transit, Delivered, Cancelled)
-- **Table Columns**: PO Number, Brand/Model, Transporter, Vehicle, Route, Qty, Status, Pickup Date, Actions
+- **Table Columns**: PO Number, Vendor, Brand/Model, Transporter, Vehicle, Route, Qty, Status, Pickup Date, Actions
 
 ### ✅ UI/UX & Branding (Complete)
 - Magnova Blue (#1e3a5f) & Orange (#f97316) color scheme
