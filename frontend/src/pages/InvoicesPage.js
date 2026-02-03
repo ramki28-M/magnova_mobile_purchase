@@ -35,7 +35,7 @@ export const InvoicesPage = () => {
 
   useEffect(() => {
     fetchInvoices();
-  }, []);
+  }, [refreshTimestamps.invoices]);
 
   // Auto-calculate GST when amount or percentage changes
   useEffect(() => {
