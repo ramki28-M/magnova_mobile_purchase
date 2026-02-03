@@ -235,6 +235,29 @@ export const ReportsPage = () => {
     toast.success('Report exported successfully');
   };
 
+  const handleExportExcel = async () => {
+    try {
+      toast.info('Generating Excel report...');
+      const response = await api.get('/reports/export/master', {
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `master_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Excel report downloaded successfully');
+    } catch (error) {
+      toast.error('Failed to export Excel report');
+    }
+  };
+
   const formatDate = (dateStr) => {
     if (!dateStr || dateStr === '-') return '-';
     try {
