@@ -18,12 +18,13 @@ export const ReportsPage = () => {
   const [poFilter, setPOFilter] = useState('all');
   const [uniquePOs, setUniquePOs] = useState([]);
   const { user } = useAuth();
+  const { refreshTimestamps, triggerGlobalRefresh } = useDataRefresh();
   const isAdmin = user?.role === 'Admin';
 
   useEffect(() => {
     fetchStats();
     fetchMasterReport();
-  }, []);
+  }, [refreshTimestamps.reports]);
 
   useEffect(() => {
     filterReport();
