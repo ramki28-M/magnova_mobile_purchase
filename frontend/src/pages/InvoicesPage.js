@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { toast } from 'sonner';
 import { Plus, FileText, Trash2, Printer, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useDataRefresh } from '../context/DataRefreshContext';
 
 export const InvoicesPage = () => {
   const [invoices, setInvoices] = useState([]);
