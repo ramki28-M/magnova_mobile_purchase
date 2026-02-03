@@ -147,7 +147,7 @@ export const LogisticsPage = () => {
         return;
       }
 
-      await api.post('/logistics/shipments', {
+      const response = await api.post('/logistics/shipments', {
         po_number: formData.po_number,
         transporter_name: formData.transporter_name,
         vehicle_number: formData.vehicle_number,
@@ -161,10 +161,27 @@ export const LogisticsPage = () => {
         model: formData.model,
         vendor: formData.vendor,
       });
-      toast.success('Shipment created successfully');
+      
+      // Clear logistics notification
+      clearLogisticsNotification(formData.po_number);
+      
+      // Trigger inventory notification
+      addInventoryNotification({
+        po_number: formData.po_number,
+        shipment_id: response.data.shipment_id,
+        brand: formData.brand,
+        model: formData.model,
+        vendor: formData.vendor,
+        from_location: formData.from_location,
+        to_location: formData.to_location,
+        pickup_quantity: pickupQty,
+        transporter: formData.transporter_name,
+      });
+      
+      toast.success('Shipment created - Inventory notification sent');
       setDialogOpen(false);
       resetForm();
-      refreshAfterLogisticsChange(); // Trigger refresh
+      refreshAfterLogisticsChange();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create shipment');
     }
