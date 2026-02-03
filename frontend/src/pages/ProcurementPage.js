@@ -13,6 +13,8 @@ import { useDataRefresh } from '../context/DataRefreshContext';
 
 export const ProcurementPage = () => {
   const [records, setRecords] = useState([]);
+  const [filteredRecords, setFilteredRecords] = useState([]);
+  const [searchImei, setSearchImei] = useState('');
   const [pos, setPOs] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPO, setSelectedPO] = useState(null);
@@ -39,6 +41,18 @@ export const ProcurementPage = () => {
     fetchRecords();
     fetchPOs();
   }, [refreshTimestamps.procurement, refreshTimestamps.purchaseOrders]);
+
+  // Filter records when search IMEI changes
+  useEffect(() => {
+    if (searchImei.trim() === '') {
+      setFilteredRecords(records);
+    } else {
+      const filtered = records.filter(record => 
+        record.imei && record.imei.toLowerCase().includes(searchImei.toLowerCase())
+      );
+      setFilteredRecords(filtered);
+    }
+  }, [searchImei, records]);
 
   const fetchRecords = async () => {
     try {
