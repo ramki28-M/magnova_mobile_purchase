@@ -359,6 +359,37 @@ export const ProcurementPage = () => {
           </Dialog>
         </div>
 
+        {/* IMEI Search Filter */}
+        <div className="mb-4 bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 max-w-md">
+              <Label className="text-slate-700 font-medium mb-1 block">Search by IMEI</Label>
+              <Input
+                value={searchImei}
+                onChange={(e) => setSearchImei(e.target.value)}
+                placeholder="Enter IMEI to filter records..."
+                className="bg-white text-slate-900 font-mono"
+                data-testid="imei-search-input"
+              />
+            </div>
+            {searchImei && (
+              <div className="flex items-center gap-2 mt-6">
+                <span className="text-sm text-slate-500">
+                  Showing {filteredRecords.length} of {records.length} records
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSearchImei('')}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  Clear
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full" data-testid="procurement-table">
@@ -376,14 +407,14 @@ export const ProcurementPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {records.length === 0 ? (
+                {filteredRecords.length === 0 ? (
                   <tr>
                     <td colSpan={isAdmin ? 9 : 8} className="px-4 py-8 text-center text-slate-500">
-                      No procurement records found
+                      {searchImei ? `No records found for IMEI "${searchImei}"` : 'No procurement records found'}
                     </td>
                   </tr>
                 ) : (
-                  records.map((record) => (
+                  filteredRecords.map((record) => (
                     <tr key={record.procurement_id} className="table-row border-b border-slate-100 hover:bg-slate-50" data-testid="procurement-row">
                       <td className="px-4 py-3 text-sm font-mono font-medium text-magnova-blue">{record.po_number}</td>
                       <td className="px-4 py-3 text-sm font-mono text-slate-900">{record.imei}</td>
