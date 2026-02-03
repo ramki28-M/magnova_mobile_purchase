@@ -731,12 +731,25 @@ async def get_payments(po_number: Optional[str] = None, payment_type: Optional[s
 # IMEI Inventory Endpoints
 @api_router.get("/inventory/lookup/{imei}")
 async def lookup_imei(imei: str, current_user: User = Depends(get_current_user)):
-    """Lookup IMEI details from procurement records and existing inventory"""
+    """Lookup IMEI details from procurement records, PO items, and existing inventory"""
     # First check if IMEI exists in inventory
     inventory_record = await db.imei_inventory.find_one({"imei": imei}, {"_id": 0})
     
     # Then check procurement records for this IMEI
     procurement_record = await db.procurement.find_one({"imei": imei}, {"_id": 0})
+    
+    # Also check PO items for this IMEI to get brand, model, color
+    po_item_data = None
+    if procurement_record and procurement_record.get("po_number"):
+        po = await db.purchase_orders.find_one({"po_number": procurement_record.get("po_number")}, {"_id": 0})
+        if po and po.get("items"):
+            for item in po["items"]:
+                if item.get("imei") == imei or item.get("vendor") == procurement_record.get("vendor_name"):
+                    po_item_data = item
+                    break
+            # If no exact match, use first item with same vendor
+            if not po_item_data:
+                po_item_data = po["items"][0] if po["items"] else None
     
     if not inventory_record and not procurement_record:
         return {"found": False, "message": "IMEI not found in procurement or inventory"}
@@ -756,6 +769,18 @@ async def lookup_imei(imei: str, current_user: User = Depends(get_current_user))
         result["purchase_price"] = procurement_record.get("purchase_price")
         result["procurement_date"] = procurement_record.get("procurement_date")
     
+    # If we found PO item data, get brand, model, color
+    if po_item_data:
+        result["brand"] = po_item_data.get("brand")
+        result["model"] = po_item_data.get("model")
+        result["colour"] = po_item_data.get("colour")
+        result["storage"] = po_item_data.get("storage")
+        # Also use vendor and location from PO item if available
+        if po_item_data.get("vendor"):
+            result["vendor"] = po_item_data.get("vendor")
+        if po_item_data.get("location"):
+            result["store_location"] = po_item_data.get("location")
+    
     # If in inventory, get current status
     if inventory_record:
         result["status"] = inventory_record.get("status")
@@ -763,6 +788,9 @@ async def lookup_imei(imei: str, current_user: User = Depends(get_current_user))
         result["organization"] = inventory_record.get("organization")
         result["device_model"] = inventory_record.get("device_model")
         result["vendor"] = inventory_record.get("vendor")
+        result["brand"] = inventory_record.get("brand") or result.get("brand")
+        result["model"] = inventory_record.get("model") or result.get("model")
+        result["colour"] = inventory_record.get("colour") or result.get("colour")
     
     return result
 
