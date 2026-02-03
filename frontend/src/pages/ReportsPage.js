@@ -188,10 +188,16 @@ export const ReportsPage = () => {
     }
 
     const headers = [
+      // PROCUREMENT (Magnova → Nova PO)
       'SL No', 'PO ID', 'PO Date', 'Purchase Office', 'Vendor', 'Location', 'Brand', 'Model', 
       'Storage', 'Colour', 'IMEI', 'Qty', 'Rate', 'PO Value', 'GRN No',
-      'Payment#', 'Bank Account', 'IFSC Code', 'Payment Date', 'UTR No', 'Payment Amount',
+      // PAYMENT (Magnova → Nova)
+      'Payment#', 'Bank Account', 'IFSC Code', 'Payment Date', 'UTR No', 'Amount',
+      // PAYMENTS (Nova → Vendors)
+      'Ext Payment#', 'Payee Name', 'Payee Type', 'Ext Bank Acc#', 'Ext Payment Date', 'Ext UTR No', 'Ext Amount',
+      // LOGISTICS
       'Courier Name', 'Dispatch Date', 'POD Number', 'Shipment Status',
+      // STORES
       'Stock Received Date', 'Received Qty', 'Warehouse', 'Stock Status'
     ];
 
@@ -201,11 +207,18 @@ export const ReportsPage = () => {
         row.sl_no, row.po_id, row.po_date ? new Date(row.po_date).toLocaleDateString() : '-',
         row.purchase_office, row.vendor, row.location, row.brand, row.model,
         row.storage, row.colour, row.imei, row.qty, row.rate, row.po_value, row.grn_no,
+        // PAYMENT (Magnova → Nova)
         row.payment_no, row.bank_account, row.ifsc_code, 
         row.payment_date !== '-' ? new Date(row.payment_date).toLocaleDateString() : '-',
         row.utr_no, row.payment_amount,
+        // PAYMENTS (Nova → Vendors)
+        row.ext_payment_no, row.ext_payee_name, row.ext_payee_type, row.ext_bank_account,
+        row.ext_payment_date !== '-' ? new Date(row.ext_payment_date).toLocaleDateString() : '-',
+        row.ext_utr_no, row.ext_payment_amount,
+        // LOGISTICS
         row.courier_name, row.dispatch_date !== '-' ? new Date(row.dispatch_date).toLocaleDateString() : '-',
         row.pod_number, row.shipment_status,
+        // STORES
         row.stock_received_date !== '-' ? new Date(row.stock_received_date).toLocaleDateString() : '-',
         row.received_qty, row.warehouse, row.stock_status
       ].join(','))
