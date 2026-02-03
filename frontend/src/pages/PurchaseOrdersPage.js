@@ -70,11 +70,29 @@ export const PurchaseOrdersPage = () => {
         qty: parseInt(item.qty) || 1, rate: parseFloat(item.rate) || 0,
         po_value: (parseInt(item.qty) || 1) * (parseFloat(item.rate) || 0)
       }));
-      await api.post('/purchase-orders', { po_date: new Date(poDate).toISOString(), purchase_office: purchaseOffice, items, notes: null });
-      toast.success('Purchase order created successfully');
+      const response = await api.post('/purchase-orders', { po_date: new Date(poDate).toISOString(), purchase_office: purchaseOffice, items, notes: null });
+      
+      // Calculate total value for notification
+      const totalValue = items.reduce((sum, item) => sum + (item.po_value || 0), 0);
+      const totalQty = items.reduce((sum, item) => sum + (item.qty || 0), 0);
+      
+      // Trigger notification to Payments page for Internal Payment
+      addInternalPaymentNotification({
+        po_number: response.data.po_number,
+        po_date: poDate,
+        purchase_office: purchaseOffice,
+        total_value: totalValue,
+        total_qty: totalQty,
+        items: items,
+        vendor: items[0]?.vendor || '',
+        brand: items[0]?.brand || '',
+        model: items[0]?.model || '',
+      });
+      
+      toast.success('Purchase order created successfully - Notification sent to Payments');
       setDialogOpen(false);
       resetForm();
-      refreshAfterPOChange(); // Trigger global refresh
+      refreshAfterPOChange();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create PO');
     }
