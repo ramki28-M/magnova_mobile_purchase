@@ -19,7 +19,7 @@ export const ProcurementPage = () => {
   const [poItems, setPOItems] = useState([]);
   const [selectedItemIndex, setSelectedItemIndex] = useState('');
   const { user } = useAuth();
-  const { refreshTimestamps, refreshAfterProcurementChange } = useDataRefresh();
+  const { refreshTimestamps, refreshAfterProcurementChange, addProcurementNotification } = useDataRefresh();
   const isAdmin = user?.role === 'Admin';
   const [formData, setFormData] = useState({
     po_number: '',
