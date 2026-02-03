@@ -1017,10 +1017,14 @@ async def create_invoice(invoice_data: InvoiceCreate, current_user: User = Depen
         "to_organization": invoice_data.to_organization,
         "amount": invoice_data.amount,
         "gst_amount": invoice_data.gst_amount,
+        "gst_percentage": invoice_data.gst_percentage or 18,
         "total_amount": invoice_data.amount + invoice_data.gst_amount,
-        "imei_list": invoice_data.imei_list,
+        "imei_list": invoice_data.imei_list or [],
         "invoice_date": invoice_data.invoice_date.isoformat(),
         "payment_status": "Pending",
+        "description": invoice_data.description,
+        "billing_address": invoice_data.billing_address,
+        "shipping_address": invoice_data.shipping_address,
         "created_by": current_user.user_id,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
@@ -1038,6 +1042,15 @@ async def get_invoices(current_user: User = Depends(get_current_user)):
             invoice['invoice_date'] = datetime.fromisoformat(invoice['invoice_date'])
         if isinstance(invoice.get('created_at'), str):
             invoice['created_at'] = datetime.fromisoformat(invoice['created_at'])
+        # Ensure backward compatibility for new fields
+        if 'gst_percentage' not in invoice:
+            invoice['gst_percentage'] = 18
+        if 'description' not in invoice:
+            invoice['description'] = None
+        if 'billing_address' not in invoice:
+            invoice['billing_address'] = None
+        if 'shipping_address' not in invoice:
+            invoice['shipping_address'] = None
     return [Invoice(**invoice) for invoice in invoices]
 
 # Sales Order Endpoints
