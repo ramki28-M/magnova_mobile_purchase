@@ -791,7 +791,8 @@ export const PaymentsPage = () => {
                       <tr className="bg-magnova-orange text-white">
                         <th className="px-3 py-2 text-left text-xs">Payee Type</th>
                         <th className="px-3 py-2 text-left text-xs">Payee Name</th>
-                        <th className="px-3 py-2 text-left text-xs">Account</th>
+                        <th className="px-3 py-2 text-left text-xs">Account/Card #</th>
+                        <th className="px-3 py-2 text-left text-xs">IFSC/Bank</th>
                         <th className="px-3 py-2 text-left text-xs">Location</th>
                         <th className="px-3 py-2 text-right text-xs">Amount</th>
                         <th className="px-3 py-2 text-left text-xs">UTR</th>
@@ -805,11 +806,12 @@ export const PaymentsPage = () => {
                             <span className={`px-2 py-1 rounded text-xs font-medium ${
                               payment.payee_type === 'vendor' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
                             }`}>
-                              {payment.payee_type?.toUpperCase()}
+                              {payment.payee_type === 'cc' ? 'CREDIT CARD' : payment.payee_type?.toUpperCase()}
                             </span>
                           </td>
                           <td className="px-3 py-2 text-slate-900">{payment.payee_name}</td>
                           <td className="px-3 py-2 font-mono text-slate-600">{payment.account_number}</td>
+                          <td className="px-3 py-2 text-slate-600">{payment.ifsc_code || '-'}</td>
                           <td className="px-3 py-2 text-slate-600">{payment.location}</td>
                           <td className="px-3 py-2 text-right font-medium">₹{payment.amount?.toLocaleString()}</td>
                           <td className="px-3 py-2 font-mono text-slate-600">{payment.utr_number}</td>
