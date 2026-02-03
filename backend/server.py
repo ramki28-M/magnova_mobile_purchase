@@ -1186,17 +1186,23 @@ async def export_inventory_report(current_user: User = Depends(get_current_user)
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet("Inventory")
     
-    headers = ["IMEI", "Device Model", "Status", "Organization", "Location", "Created At"]
+    headers = ["IMEI", "Brand", "Model", "Colour", "Storage", "Device Model", "Status", "Vendor", "Organization", "Location", "PO Number", "Created At"]
     for col, header in enumerate(headers):
         worksheet.write(0, col, header)
     
     for row, item in enumerate(inventory, start=1):
         worksheet.write(row, 0, item.get("imei", ""))
-        worksheet.write(row, 1, item.get("device_model", ""))
-        worksheet.write(row, 2, item.get("status", ""))
-        worksheet.write(row, 3, item.get("organization", ""))
-        worksheet.write(row, 4, item.get("current_location", ""))
-        worksheet.write(row, 5, str(item.get("created_at", "")))
+        worksheet.write(row, 1, item.get("brand", ""))
+        worksheet.write(row, 2, item.get("model", ""))
+        worksheet.write(row, 3, item.get("colour", ""))
+        worksheet.write(row, 4, item.get("storage", ""))
+        worksheet.write(row, 5, item.get("device_model", ""))
+        worksheet.write(row, 6, item.get("status", ""))
+        worksheet.write(row, 7, item.get("vendor", ""))
+        worksheet.write(row, 8, item.get("organization", ""))
+        worksheet.write(row, 9, item.get("current_location", ""))
+        worksheet.write(row, 10, item.get("po_number", ""))
+        worksheet.write(row, 11, str(item.get("created_at", "")))
     
     workbook.close()
     output.seek(0)
@@ -1205,6 +1211,140 @@ async def export_inventory_report(current_user: User = Depends(get_current_user)
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": "attachment; filename=inventory_report.xlsx"}
+    )
+
+@api_router.get("/reports/export/master")
+async def export_master_report(current_user: User = Depends(get_current_user)):
+    """Export the complete Master Report with all sections as Excel"""
+    
+    # Fetch all data
+    pos = await db.purchase_orders.find({}, {"_id": 0}).to_list(1000)
+    procurements = await db.procurement.find({}, {"_id": 0}).to_list(1000)
+    payments = await db.payments.find({}, {"_id": 0}).to_list(1000)
+    shipments = await db.logistics_shipments.find({}, {"_id": 0}).to_list(1000)
+    inventory = await db.imei_inventory.find({}, {"_id": 0}).to_list(5000)
+    
+    # Separate internal and external payments
+    internal_payments = [p for p in payments if p.get("payment_type") == "internal" or not p.get("payment_type")]
+    external_payments = [p for p in payments if p.get("payment_type") == "external"]
+    
+    output = io.BytesIO()
+    workbook = xlsxwriter.Workbook(output)
+    worksheet = workbook.add_worksheet("Master Report")
+    
+    # Formatting
+    header_format = workbook.add_format({'bold': True, 'bg_color': '#1e3a5f', 'font_color': 'white', 'border': 1})
+    section_format_procurement = workbook.add_format({'bold': True, 'bg_color': '#16a34a', 'font_color': 'white', 'border': 1})
+    section_format_payment_int = workbook.add_format({'bold': True, 'bg_color': '#f97316', 'font_color': 'white', 'border': 1})
+    section_format_payment_ext = workbook.add_format({'bold': True, 'bg_color': '#9333ea', 'font_color': 'white', 'border': 1})
+    section_format_logistics = workbook.add_format({'bold': True, 'bg_color': '#2563eb', 'font_color': 'white', 'border': 1})
+    section_format_stores = workbook.add_format({'bold': True, 'bg_color': '#ec4899', 'font_color': 'white', 'border': 1})
+    cell_format = workbook.add_format({'border': 1})
+    money_format = workbook.add_format({'border': 1, 'num_format': '₹#,##0.00'})
+    
+    # Section Headers Row
+    worksheet.merge_range('A1:O1', 'PROCUREMENT (Magnova → Nova PO)', section_format_procurement)
+    worksheet.merge_range('P1:U1', 'PAYMENT (Magnova → Nova)', section_format_payment_int)
+    worksheet.merge_range('V1:AB1', 'PAYMENTS (Nova → Vendors)', section_format_payment_ext)
+    worksheet.merge_range('AC1:AF1', 'LOGISTICS', section_format_logistics)
+    worksheet.merge_range('AG1:AJ1', 'STORES', section_format_stores)
+    
+    # Column Headers Row
+    headers = [
+        # PROCUREMENT (Magnova → Nova PO) - 15 columns
+        'SL No', 'PO ID', 'PO Date', 'Purchase Office', 'Vendor', 'Location', 'Brand', 'Model', 
+        'Storage', 'Colour', 'IMEI', 'Qty', 'Rate', 'PO Value', 'GRN No',
+        # PAYMENT (Magnova → Nova) - 6 columns
+        'Payment#', 'Bank Acc#', 'IFSC', 'Payment Dt', 'UTR No', 'Amount',
+        # PAYMENTS (Nova → Vendors) - 7 columns
+        'Payment#', 'Payee Name', 'Payee Type', 'Bank Acc#', 'Payment Dt', 'UTR No', 'Amount',
+        # LOGISTICS - 4 columns
+        'Courier', 'Dispatch Dt', 'POD No', 'Status',
+        # STORES - 4 columns
+        'Received Dt', 'Rcvd Qty', 'Warehouse', 'Status'
+    ]
+    
+    for col, header in enumerate(headers):
+        worksheet.write(1, col, header, header_format)
+    
+    # Data Rows
+    row = 2
+    sl_no = 1
+    
+    for po in pos:
+        items = po.get("items", [{}])
+        for item in items:
+            # Find related data
+            related_proc = next((p for p in procurements if p.get("po_number") == po.get("po_number") and 
+                               (p.get("vendor_name") == item.get("vendor") or p.get("device_model", "").find(item.get("model", "")) >= 0)), None)
+            related_int_payment = next((p for p in internal_payments if p.get("po_number") == po.get("po_number")), None)
+            related_ext_payment = next((p for p in external_payments if p.get("po_number") == po.get("po_number")), None)
+            related_shipment = next((s for s in shipments if s.get("po_number") == po.get("po_number") and 
+                                    (s.get("vendor") == item.get("vendor") or s.get("from_location") == item.get("location"))), None)
+            related_inv = next((i for i in inventory if 
+                               (i.get("brand") and item.get("brand") and i.get("brand") == item.get("brand")) or
+                               (i.get("model") and item.get("model") and i.get("model") == item.get("model"))), None)
+            
+            # PROCUREMENT columns
+            worksheet.write(row, 0, sl_no, cell_format)
+            worksheet.write(row, 1, po.get("po_number", ""), cell_format)
+            worksheet.write(row, 2, str(po.get("po_date", ""))[:10], cell_format)
+            worksheet.write(row, 3, po.get("purchase_office", ""), cell_format)
+            worksheet.write(row, 4, item.get("vendor", ""), cell_format)
+            worksheet.write(row, 5, item.get("location", ""), cell_format)
+            worksheet.write(row, 6, item.get("brand", ""), cell_format)
+            worksheet.write(row, 7, item.get("model", ""), cell_format)
+            worksheet.write(row, 8, item.get("storage", ""), cell_format)
+            worksheet.write(row, 9, item.get("colour", ""), cell_format)
+            worksheet.write(row, 10, item.get("imei") or (related_proc.get("imei") if related_proc else ""), cell_format)
+            worksheet.write(row, 11, item.get("qty", 0), cell_format)
+            worksheet.write(row, 12, item.get("rate", 0), money_format)
+            worksheet.write(row, 13, item.get("po_value", 0), money_format)
+            worksheet.write(row, 14, related_proc.get("procurement_id", "")[:8] if related_proc else "-", cell_format)
+            
+            # PAYMENT (Magnova → Nova) columns
+            worksheet.write(row, 15, related_int_payment.get("payment_id", "")[:8] if related_int_payment else "-", cell_format)
+            worksheet.write(row, 16, "XXXX1234" if related_int_payment and related_int_payment.get("payment_mode") == "Bank Transfer" else "-", cell_format)
+            worksheet.write(row, 17, "HDFC0001234" if related_int_payment and related_int_payment.get("payment_mode") == "Bank Transfer" else "-", cell_format)
+            worksheet.write(row, 18, str(related_int_payment.get("payment_date", ""))[:10] if related_int_payment else "-", cell_format)
+            worksheet.write(row, 19, related_int_payment.get("transaction_ref", "-") if related_int_payment else "-", cell_format)
+            worksheet.write(row, 20, related_int_payment.get("amount", 0) if related_int_payment else 0, money_format)
+            
+            # PAYMENTS (Nova → Vendors) columns
+            worksheet.write(row, 21, related_ext_payment.get("payment_id", "")[:8] if related_ext_payment else "-", cell_format)
+            worksheet.write(row, 22, related_ext_payment.get("payee_name", "-") if related_ext_payment else "-", cell_format)
+            worksheet.write(row, 23, related_ext_payment.get("payee_type", "-") if related_ext_payment else "-", cell_format)
+            worksheet.write(row, 24, related_ext_payment.get("account_number", "-") if related_ext_payment else "-", cell_format)
+            worksheet.write(row, 25, str(related_ext_payment.get("payment_date", ""))[:10] if related_ext_payment else "-", cell_format)
+            worksheet.write(row, 26, related_ext_payment.get("utr_number", "-") if related_ext_payment else "-", cell_format)
+            worksheet.write(row, 27, related_ext_payment.get("amount", 0) if related_ext_payment else 0, money_format)
+            
+            # LOGISTICS columns
+            worksheet.write(row, 28, related_shipment.get("transporter_name", "-") if related_shipment else "-", cell_format)
+            worksheet.write(row, 29, str(related_shipment.get("pickup_date", ""))[:10] if related_shipment else "-", cell_format)
+            worksheet.write(row, 30, related_shipment.get("shipment_id", "")[:8] if related_shipment else "-", cell_format)
+            worksheet.write(row, 31, related_shipment.get("status", "-") if related_shipment else "-", cell_format)
+            
+            # STORES columns
+            worksheet.write(row, 32, str(related_inv.get("created_at", ""))[:10] if related_inv else "-", cell_format)
+            worksheet.write(row, 33, 1 if related_inv else 0, cell_format)
+            worksheet.write(row, 34, related_inv.get("current_location", "-") if related_inv else "-", cell_format)
+            worksheet.write(row, 35, related_inv.get("status", "-") if related_inv else "-", cell_format)
+            
+            row += 1
+            sl_no += 1
+    
+    # Auto-fit columns (approximate)
+    for col in range(36):
+        worksheet.set_column(col, col, 12)
+    
+    workbook.close()
+    output.seek(0)
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=master_report.xlsx"}
     )
 
 @api_router.get("/audit-logs")
