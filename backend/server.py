@@ -180,11 +180,18 @@ class ExternalPaymentCreate(BaseModel):
 class IMEIInventory(BaseModel):
     model_config = ConfigDict(extra="ignore")
     imei: str
-    procurement_id: str
-    device_model: str
+    procurement_id: Optional[str] = None
+    device_model: Optional[str] = None
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    colour: Optional[str] = None
+    storage: Optional[str] = None
+    vendor: Optional[str] = None
     status: str
     current_location: str
     organization: str
+    po_number: Optional[str] = None
+    purchase_price: Optional[float] = None
     inward_nova_date: Optional[datetime] = None
     inward_magnova_date: Optional[datetime] = None
     dispatched_date: Optional[datetime] = None
