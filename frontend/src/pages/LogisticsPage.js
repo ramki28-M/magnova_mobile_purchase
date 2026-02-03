@@ -307,21 +307,21 @@ export const LogisticsPage = () => {
   return (
     <Layout>
       <div data-testid="logistics-page">
-        {/* Procurement Notifications Banner */}
-        {pendingProcurements.length > 0 && (
-          <div className="mb-6 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg p-4" data-testid="procurement-notifications">
+        {/* Logistics Notifications Banner - Procurement Complete, Ready for Shipment */}
+        {pendingLogistics.length > 0 && (
+          <div className="mb-6 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg p-4" data-testid="logistics-notifications">
             <div className="flex items-center gap-2 mb-3">
               <Bell className="w-5 h-5 text-orange-600 animate-pulse" />
-              <h3 className="font-semibold text-orange-800">New Procurement Added - Ready for Shipment</h3>
-              <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">{pendingProcurements.length}</span>
+              <h3 className="font-semibold text-orange-800">Procurement Complete - Ready for Shipment</h3>
+              <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">{pendingLogistics.length}</span>
             </div>
             <div className="space-y-2">
-              {pendingProcurements.map((proc, index) => (
+              {pendingLogistics.map((proc, index) => (
                 <div 
-                  key={`${proc.po_number}-${proc.imei}-${index}`}
+                  key={`logistics-${proc.po_number}-${proc.imei}-${index}`}
                   className="flex items-center justify-between bg-white rounded-lg p-3 border border-orange-100 hover:border-orange-300 transition-colors cursor-pointer"
                   onClick={() => handleNotificationClick(proc)}
-                  data-testid="procurement-notification-item"
+                  data-testid="logistics-notification-item"
                 >
                   <div className="flex items-center gap-4">
                     <div className="bg-orange-100 p-2 rounded-lg">
@@ -341,17 +341,17 @@ export const LogisticsPage = () => {
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
-                      className="bg-magnova-blue hover:bg-magnova-dark-blue"
+                      className="bg-orange-600 hover:bg-orange-700"
                       onClick={(e) => { e.stopPropagation(); handleNotificationClick(proc); }}
                     >
-                      <Plus className="w-4 h-4 mr-1" />
+                      <Truck className="w-4 h-4 mr-1" />
                       Create Shipment
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
                       className="text-slate-400 hover:text-slate-600"
-                      onClick={(e) => { e.stopPropagation(); clearProcurementNotification(proc.po_number, proc.imei); }}
+                      onClick={(e) => { e.stopPropagation(); clearLogisticsNotification(proc.po_number, proc.imei); }}
                     >
                       <X className="w-4 h-4" />
                     </Button>
