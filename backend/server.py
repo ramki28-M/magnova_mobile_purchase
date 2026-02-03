@@ -804,13 +804,25 @@ async def scan_imei(scan_data: IMEIScan, current_user: User = Depends(get_curren
         if not procurement_record:
             raise HTTPException(status_code=404, detail="IMEI not found in procurement records. Please add this IMEI through procurement first.")
         
+        # Get PO item data for brand, model, color
+        po_item_data = None
+        if procurement_record.get("po_number"):
+            po = await db.purchase_orders.find_one({"po_number": procurement_record.get("po_number")}, {"_id": 0})
+            if po and po.get("items"):
+                for item in po["items"]:
+                    if item.get("imei") == scan_data.imei or item.get("vendor") == procurement_record.get("vendor_name"):
+                        po_item_data = item
+                        break
+                if not po_item_data:
+                    po_item_data = po["items"][0] if po["items"] else None
+        
         # Create new inventory entry from procurement data
         new_inventory = {
             "imei": scan_data.imei,
             "device_model": procurement_record.get("device_model", "Unknown"),
             "status": "Procured",
             "vendor": procurement_record.get("vendor_name") or scan_data.vendor,
-            "organization": scan_data.organization or "Nova",
+            "organization": "Nova",
             "current_location": scan_data.location or procurement_record.get("store_location"),
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -818,13 +830,20 @@ async def scan_imei(scan_data: IMEIScan, current_user: User = Depends(get_curren
             "procurement_id": procurement_record.get("procurement_id"),
             "purchase_price": procurement_record.get("purchase_price"),
         }
+        
+        # Add brand, model, color from PO item data
+        if po_item_data:
+            new_inventory["brand"] = po_item_data.get("brand")
+            new_inventory["model"] = po_item_data.get("model")
+            new_inventory["colour"] = po_item_data.get("colour")
+            new_inventory["storage"] = po_item_data.get("storage")
+        
         await db.imei_inventory.insert_one(new_inventory)
         imei_record = new_inventory
     
     update_data = {
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "current_location": scan_data.location,
-        "organization": scan_data.organization
     }
     
     # Add vendor if provided
