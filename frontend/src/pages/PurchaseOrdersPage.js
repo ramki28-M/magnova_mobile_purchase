@@ -74,7 +74,7 @@ export const PurchaseOrdersPage = () => {
       toast.success('Purchase order created successfully');
       setDialogOpen(false);
       resetForm();
-      fetchPOs();
+      refreshAfterPOChange(); // Trigger global refresh
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create PO');
     }
