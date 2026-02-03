@@ -114,7 +114,7 @@ export const ProcurementPage = () => {
       toast.success('Procurement record created successfully');
       setDialogOpen(false);
       resetForm();
-      fetchRecords();
+      refreshAfterProcurementChange(); // Trigger refresh
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create record');
     }
