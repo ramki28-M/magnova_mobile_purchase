@@ -19,6 +19,7 @@ export const PaymentsPage = () => {
   const [paymentSummary, setPaymentSummary] = useState(null);
   const [linkedPaymentsDialog, setLinkedPaymentsDialog] = useState({ open: false, poNumber: '', internalPayment: null });
   const { user } = useAuth();
+  const { refreshTimestamps, refreshAfterPaymentChange } = useDataRefresh();
   const isAdmin = user?.role === 'Admin';
 
   // Internal Payment Form
