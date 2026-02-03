@@ -22,7 +22,13 @@ export const LogisticsPage = () => {
   const [selectedItemIndex, setSelectedItemIndex] = useState('');
   const [availableQty, setAvailableQty] = useState({});
   const { user } = useAuth();
-  const { refreshTimestamps, refreshAfterLogisticsChange, pendingProcurements, clearProcurementNotification } = useDataRefresh();
+  const { 
+    refreshTimestamps, 
+    refreshAfterLogisticsChange, 
+    pendingLogistics, 
+    clearLogisticsNotification,
+    addInventoryNotification,
+  } = useDataRefresh();
   const isAdmin = user?.role === 'Admin';
   const [formData, setFormData] = useState({
     po_number: '',
