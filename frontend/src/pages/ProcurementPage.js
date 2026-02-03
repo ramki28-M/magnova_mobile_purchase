@@ -204,6 +204,60 @@ export const ProcurementPage = () => {
   return (
     <Layout>
       <div data-testid="procurement-page">
+        {/* Procurement Notifications Banner - Payment Complete, Ready for Procurement */}
+        {pendingProcurements.length > 0 && (
+          <div className="mb-6 bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-200 rounded-lg p-4" data-testid="procurement-notifications">
+            <div className="flex items-center gap-2 mb-3">
+              <Bell className="w-5 h-5 text-purple-600 animate-pulse" />
+              <h3 className="font-semibold text-purple-800">Payments Complete - Ready for Procurement</h3>
+              <span className="bg-purple-500 text-white text-xs px-2 py-0.5 rounded-full">{pendingProcurements.length}</span>
+            </div>
+            <div className="space-y-2">
+              {pendingProcurements.map((notif, index) => (
+                <div 
+                  key={`proc-${notif.po_number}-${index}`}
+                  className="flex items-center justify-between bg-white rounded-lg p-3 border border-purple-100 hover:border-purple-300 transition-colors cursor-pointer"
+                  onClick={() => handleNotificationClick(notif)}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="bg-purple-100 p-2 rounded-lg">
+                      <Package className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-slate-900">
+                        <span className="font-mono text-magnova-blue">{notif.po_number}</span>
+                        <span className="mx-2 text-slate-400">|</span>
+                        <span>{notif.brand} {notif.model}</span>
+                      </div>
+                      <div className="text-sm text-slate-500">
+                        Vendor: {notif.vendor} • Location: {notif.location}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      className="bg-purple-600 hover:bg-purple-700"
+                      onClick={(e) => { e.stopPropagation(); handleNotificationClick(notif); }}
+                    >
+                      <Package className="w-4 h-4 mr-1" />
+                      Add Procurement
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-slate-400 hover:text-slate-600"
+                      onClick={(e) => { e.stopPropagation(); clearProcurementNotification(notif.po_number); }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Procurement</h1>
