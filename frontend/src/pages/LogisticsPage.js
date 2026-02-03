@@ -43,7 +43,7 @@ export const LogisticsPage = () => {
   useEffect(() => {
     fetchShipments();
     fetchPOs();
-  }, []);
+  }, [refreshTimestamps.logistics, refreshTimestamps.purchaseOrders]);
 
   const fetchShipments = async () => {
     try {
