@@ -120,10 +120,25 @@ export const PaymentsPage = () => {
         amount: parseFloat(internalForm.amount),
         payment_date: new Date(internalForm.payment_date).toISOString(),
       });
-      toast.success('Internal payment recorded successfully');
+      
+      // Clear internal payment notification and trigger external payment notification
+      clearInternalPaymentNotification(internalForm.po_number);
+      
+      // Find PO details to pass to external payment notification
+      const po = pos.find(p => p.po_number === internalForm.po_number);
+      addExternalPaymentNotification({
+        po_number: internalForm.po_number,
+        internal_amount: parseFloat(internalForm.amount),
+        vendor: po?.items?.[0]?.vendor || '',
+        brand: po?.items?.[0]?.brand || '',
+        model: po?.items?.[0]?.model || '',
+        location: po?.items?.[0]?.location || '',
+      });
+      
+      toast.success('Internal payment recorded - External payment notification sent');
       setDialogOpen(false);
       resetForms();
-      refreshAfterPaymentChange(); // Trigger refresh
+      refreshAfterPaymentChange();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to record internal payment');
     }
@@ -137,13 +152,56 @@ export const PaymentsPage = () => {
         amount: parseFloat(externalForm.amount),
         payment_date: new Date(externalForm.payment_date).toISOString(),
       });
-      toast.success('External payment recorded successfully');
+      
+      // Clear external payment notification and trigger procurement notification
+      clearExternalPaymentNotification(externalForm.po_number);
+      
+      // Find PO details to pass to procurement notification
+      const po = pos.find(p => p.po_number === externalForm.po_number);
+      addProcurementNotification({
+        po_number: externalForm.po_number,
+        vendor: externalForm.payee_name || po?.items?.[0]?.vendor || '',
+        brand: po?.items?.[0]?.brand || '',
+        model: po?.items?.[0]?.model || '',
+        location: externalForm.location || po?.items?.[0]?.location || '',
+        items: po?.items || [],
+      });
+      
+      toast.success('External payment recorded - Procurement notification sent');
       setDialogOpen(false);
       resetForms();
-      refreshAfterPaymentChange(); // Trigger refresh
+      refreshAfterPaymentChange();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to record external payment');
     }
+  };
+
+  // Handle notification click - open dialog with pre-filled data
+  const handleInternalNotificationClick = (notification) => {
+    setPaymentType('internal');
+    setInternalForm(prev => ({
+      ...prev,
+      po_number: notification.po_number,
+      amount: notification.total_value?.toString() || '',
+    }));
+    // Find full PO to populate other fields
+    const po = pos.find(p => p.po_number === notification.po_number);
+    if (po) {
+      handleInternalPOSelect(notification.po_number);
+    }
+    setDialogOpen(true);
+  };
+
+  const handleExternalNotificationClick = (notification) => {
+    setPaymentType('external');
+    setExternalForm(prev => ({
+      ...prev,
+      po_number: notification.po_number,
+      payee_name: notification.vendor || '',
+      location: notification.location || '',
+    }));
+    handleExternalPOSelect(notification.po_number);
+    setDialogOpen(true);
   };
 
   const handleDelete = async (paymentId) => {
