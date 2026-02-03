@@ -186,9 +186,75 @@ export const InvoicesPage = () => {
     return numberToWords(Math.floor(num / 10000000)) + ' Crore' + (num % 10000000 ? ' ' + numberToWords(num % 10000000) : '');
   };
 
+  // Handle notification click - pre-fill form
+  const handleNotificationClick = (notification) => {
+    setFormData(prev => ({
+      ...prev,
+      imei_list: notification.imei || '',
+      description: `${notification.brand || ''} ${notification.model || ''} - ${notification.action || 'Device'}`.trim(),
+    }));
+    clearInvoiceNotification(notification.po_number, notification.imei);
+    setDialogOpen(true);
+  };
+
   return (
     <Layout>
       <div data-testid="invoices-page">
+        {/* Invoice Notifications Banner - Inventory Complete, Ready for Invoice */}
+        {pendingInvoices.length > 0 && (
+          <div className="mb-6 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg p-4" data-testid="invoice-notifications">
+            <div className="flex items-center gap-2 mb-3">
+              <Bell className="w-5 h-5 text-emerald-600 animate-pulse" />
+              <h3 className="font-semibold text-emerald-800">Inventory Updated - Ready for Invoice</h3>
+              <span className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full">{pendingInvoices.length}</span>
+            </div>
+            <div className="space-y-2">
+              {pendingInvoices.map((notif, index) => (
+                <div 
+                  key={`invoice-${notif.po_number}-${notif.imei}-${index}`}
+                  className="flex items-center justify-between bg-white rounded-lg p-3 border border-emerald-100 hover:border-emerald-300 transition-colors cursor-pointer"
+                  onClick={() => handleNotificationClick(notif)}
+                  data-testid="invoice-notification-item"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="bg-emerald-100 p-2 rounded-lg">
+                      <Receipt className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-slate-900">
+                        <span className="font-mono text-magnova-blue">{notif.po_number || 'N/A'}</span>
+                        <span className="mx-2 text-slate-400">|</span>
+                        <span>{notif.brand} {notif.model}</span>
+                      </div>
+                      <div className="text-sm text-slate-500">
+                        IMEI: {notif.imei} • Vendor: {notif.vendor} • Action: {notif.action}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700"
+                      onClick={(e) => { e.stopPropagation(); handleNotificationClick(notif); }}
+                    >
+                      <FileText className="w-4 h-4 mr-1" />
+                      Create Invoice
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-slate-400 hover:text-slate-600"
+                      onClick={(e) => { e.stopPropagation(); clearInvoiceNotification(notif.po_number, notif.imei); }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Invoices</h1>
