@@ -18,16 +18,21 @@ import { useAuth } from '../context/AuthContext';
 export const DashboardPage = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
   const { user } = useAuth();
 
   useEffect(() => {
     fetchStats();
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchStats = async () => {
     try {
       const response = await api.get('/reports/dashboard');
       setStats(response.data);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {
