@@ -23,6 +23,30 @@ export const DataRefreshProvider = ({ children }) => {
     reports: Date.now(),
   });
 
+  // Track pending procurement notifications for logistics
+  const [pendingProcurements, setPendingProcurements] = useState([]);
+
+  // Add a procurement to pending notifications for logistics
+  const addProcurementNotification = useCallback((procurement) => {
+    setPendingProcurements(prev => {
+      // Avoid duplicates by checking PO number
+      if (prev.some(p => p.po_number === procurement.po_number && p.imei === procurement.imei)) {
+        return prev;
+      }
+      return [...prev, { ...procurement, timestamp: Date.now() }];
+    });
+  }, []);
+
+  // Clear a specific procurement notification
+  const clearProcurementNotification = useCallback((poNumber, imei) => {
+    setPendingProcurements(prev => prev.filter(p => !(p.po_number === poNumber && p.imei === imei)));
+  }, []);
+
+  // Clear all procurement notifications
+  const clearAllProcurementNotifications = useCallback(() => {
+    setPendingProcurements([]);
+  }, []);
+
   // Trigger refresh for specific data types
   const triggerRefresh = useCallback((dataTypes = []) => {
     const now = Date.now();
@@ -58,7 +82,7 @@ export const DataRefreshProvider = ({ children }) => {
   }, [triggerRefresh]);
 
   const refreshAfterProcurementChange = useCallback(() => {
-    triggerRefresh(['procurement', 'inventory', 'dashboard', 'reports']);
+    triggerRefresh(['procurement', 'inventory', 'dashboard', 'reports', 'logistics']);
   }, [triggerRefresh]);
 
   const refreshAfterPaymentChange = useCallback(() => {
@@ -88,6 +112,11 @@ export const DataRefreshProvider = ({ children }) => {
       refreshAfterLogisticsChange,
       refreshAfterInventoryChange,
       refreshAfterInvoiceChange,
+      // Procurement notifications for logistics
+      pendingProcurements,
+      addProcurementNotification,
+      clearProcurementNotification,
+      clearAllProcurementNotifications,
     }}>
       {children}
     </DataRefreshContext.Provider>
