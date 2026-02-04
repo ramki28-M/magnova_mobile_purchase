@@ -119,8 +119,9 @@ export const InvoicesPage = () => {
     setFormData({
       from_organization: 'Nova Enterprises',
       to_organization: '',
-      amount: '',
+      selling_price: '',
       gst_percentage: '18',
+      base_price: '',
       gst_amount: '',
       imei_list: '',
       invoice_date: new Date().toISOString().split('T')[0],
