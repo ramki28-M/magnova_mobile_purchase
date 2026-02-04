@@ -667,6 +667,7 @@ async def create_external_payment(payment_data: ExternalPaymentCreate, current_u
         "procurement_id": None,
         "payee_type": payment_data.payee_type,
         "payee_name": payment_data.payee_name,
+        "payee_phone": payment_data.payee_phone,
         "payee_account": None,
         "payee_bank": None,
         "account_number": payment_data.account_number,
