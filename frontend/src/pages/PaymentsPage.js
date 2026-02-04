@@ -49,6 +49,7 @@ export const PaymentsPage = () => {
     po_number: '',
     payee_type: '',
     payee_name: '',
+    payee_phone: '',
     account_number: '',
     ifsc_code: '',
     location: '',
@@ -234,6 +235,7 @@ export const PaymentsPage = () => {
       po_number: '',
       payee_type: '',
       payee_name: '',
+      payee_phone: '',
       account_number: '',
       ifsc_code: '',
       location: '',
@@ -591,7 +593,7 @@ export const PaymentsPage = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label className="text-slate-700">Payee Type *</Label>
-                        <Select value={externalForm.payee_type} onValueChange={(v) => setExternalForm({ ...externalForm, payee_type: v, account_number: '', ifsc_code: '' })} required>
+                        <Select value={externalForm.payee_type} onValueChange={(v) => setExternalForm({ ...externalForm, payee_type: v, account_number: '', ifsc_code: '', payee_phone: '' })} required>
                           <SelectTrigger className="bg-white" data-testid="payee-type-select">
                             <SelectValue placeholder="Select type" />
                           </SelectTrigger>
@@ -612,6 +614,21 @@ export const PaymentsPage = () => {
                           data-testid="external-payee-name-input"
                         />
                       </div>
+                      
+                      {/* Payee Phone Number - Only visible when CC is selected */}
+                      {externalForm.payee_type === 'cc' && (
+                        <div className="col-span-2">
+                          <Label className="text-slate-700">Payee Phone Number *</Label>
+                          <Input
+                            value={externalForm.payee_phone}
+                            onChange={(e) => setExternalForm({ ...externalForm, payee_phone: e.target.value })}
+                            required
+                            className="bg-white"
+                            placeholder="Enter phone number"
+                            data-testid="payee-phone-input"
+                          />
+                        </div>
+                      )}
                       
                       {/* Conditional fields based on Payee Type */}
                       {externalForm.payee_type === 'cc' ? (
