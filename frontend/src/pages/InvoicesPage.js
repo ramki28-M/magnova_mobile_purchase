@@ -86,7 +86,7 @@ export const InvoicesPage = () => {
         po_number: 'N/A',
         from_organization: formData.from_organization,
         to_organization: formData.to_organization,
-        amount: parseFloat(formData.amount),
+        amount: parseFloat(formData.base_price), // Send base price (excluding GST)
         gst_amount: parseFloat(formData.gst_amount),
         gst_percentage: parseFloat(formData.gst_percentage),
         imei_list: imeiArray,
