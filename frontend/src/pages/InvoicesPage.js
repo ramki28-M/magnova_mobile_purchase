@@ -454,7 +454,7 @@ export const InvoicesPage = () => {
                 <tr className="bg-magnova-orange text-white">
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Invoice No.</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">From → To</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Amount</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Base Price</th>
                   <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">GST %</th>
                   <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">GST Amt</th>
                   <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Total</th>
@@ -485,8 +485,8 @@ export const InvoicesPage = () => {
                       <td className="px-4 py-3 text-sm text-slate-600">{invoice.from_organization} → {invoice.to_organization}</td>
                       <td className="px-4 py-3 text-sm text-right text-slate-900">₹{invoice.amount?.toLocaleString()}</td>
                       <td className="px-4 py-3 text-sm text-right text-slate-600">{invoice.gst_percentage || 18}%</td>
-                      <td className="px-4 py-3 text-sm text-right text-slate-600">₹{invoice.gst_amount?.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-sm text-right font-medium text-slate-900">₹{invoice.total_amount?.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm text-right text-magnova-orange">₹{invoice.gst_amount?.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm text-right font-bold text-emerald-700">₹{invoice.total_amount?.toLocaleString()}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{new Date(invoice.invoice_date).toLocaleDateString()}</td>
                       <td className="px-4 py-3 text-sm space-x-1">
                         <Button
