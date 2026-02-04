@@ -53,7 +53,7 @@ The system must provide end-to-end visibility from Purchase Order to Sales, with
 - **Status Filter**: Includes all action statuses including Outward Nova/Magnova
 - **Search**: By IMEI or device model
 
-### ✅ Logistics & Shipments Page (Complete - Updated Feb 3, 2025)
+### ✅ Logistics & Shipments Page (Complete - Updated Feb 4, 2025)
 - **Create Shipment** with PO auto-populate:
   - PO Number selection
   - Auto-populated: Brand, Model, Vendor
@@ -62,8 +62,9 @@ The system must provide end-to-end visibility from Purchase Order to Sales, with
   - **To Location** - Manual text input (editable)
   - Transporter Name, Vehicle Number
   - Pickup Date, Expected Delivery
+  - **Default Status**: New shipments default to "In Transit" (not "Pending")
 - **Procurement Notifications**: Banner shows new procurement records ready for shipment with "Create Shipment" action
-- **Status Update**: Edit button to update status (Pending, In Transit, Delivered, Cancelled)
+- **Status Update**: Edit button to update status (**In Transit, Delivered, Cancelled** - "Pending" removed)
 - **Table Columns**: PO Number, Vendor, Brand/Model, Transporter, Vehicle, Route, Qty, Status, Pickup Date, Actions
 
 ### ✅ UI/UX & Branding (Complete)
