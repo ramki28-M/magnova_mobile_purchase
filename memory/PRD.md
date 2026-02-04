@@ -79,6 +79,16 @@ The system must provide end-to-end visibility from Purchase Order to Sales, with
 - **External Payments Table**: Includes **Phone** column showing phone numbers for CC payments
 - **Notification Workflow**: Internal payment → External payment → Procurement notifications
 
+### ✅ Invoices Page (Complete - Updated Feb 4, 2025)
+- **GST Calculation**: User enters **Selling Price (Including GST)**, system calculates:
+  - **Base Price (Excl. GST)**: Calculated as `selling_price / (1 + GST%/100)`
+  - **GST Amount**: Calculated as `selling_price - base_price`
+  - **Total (Incl. GST)**: The entered selling price
+- **Price Breakdown Display**: 3-column layout showing Cost, GST Amount, Total
+- **GST Percentages**: 5%, 12%, 18%, 28%, 0% (Exempt)
+- **Invoice Table Columns**: Invoice No., From → To, Base Price, GST %, GST Amt, Total, Date, Actions
+- **Invoice Print Preview**: Professional printable invoice with amount in words
+
 ### ✅ UI/UX & Branding (Complete)
 - Magnova Blue (#1e3a5f) & Orange (#f97316) color scheme
 - Professional sidebar navigation
